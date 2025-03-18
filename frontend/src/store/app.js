@@ -30,7 +30,7 @@ export const useAppStore = defineStore('app', {
   actions: {
     togglePreload() {
       setTimeout(() => {
-        this.preload = !this.preload
+        this.preload = false
       }, 1000);
     },
     ajax(data, url, methode) {

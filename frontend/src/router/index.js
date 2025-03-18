@@ -41,6 +41,8 @@ router.beforeEach((e) => {
   const store = useAppStore()
   const path = e.path
   const sessionId = store.sessionId
+
+  console.log(path)
   if (path != '/') {
     store.preload = true
   }
