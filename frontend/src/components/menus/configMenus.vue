@@ -36,12 +36,22 @@
       "
       v-if="config == 'accountManager'"
     />
+
+    <RankManager
+      :close-dialog="
+        () => {
+          configDialog = false;
+        }
+      "
+      v-if="config == 'rankManager'"
+    />
   </v-dialog>
 </template>
 <script setup>
 import { ref } from "vue";
 import RoleManager from "../dialogs/roleManager.vue";
 import UserManager from "../dialogs/userManager.vue";
+import RankManager from "../dialogs/rankManager.vue";
 
 const configDialog = ref(false);
 const config = ref(null);
@@ -57,6 +67,12 @@ const configs = [
     subtitle: "Manage users in the system.",
     icon: "mdi-account-multiple",
     key: "accountManager",
+  },
+  {
+    label: "TOOL RANK MANAGER",
+    subtitle: "Manage ranks in the system.",
+    icon: "mdi-chevron-triple-up",
+    key: "rankManager",
   },
 ];
 

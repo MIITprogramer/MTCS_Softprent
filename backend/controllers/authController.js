@@ -181,8 +181,3 @@ module.exports = {
         })
     }
 }
-
-function generateBase64Id(startTime, remoteAddress) {
-    const rawString = `${startTime}-${remoteAddress}`;
-    return Buffer.from(rawString).toString("base64");
-}

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 18 Mar 2025 pada 16.47
+-- Waktu pembuatan: 19 Mar 2025 pada 07.45
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.0.30
 
@@ -22,6 +22,27 @@ SET time_zone = "+00:00";
 --
 CREATE DATABASE IF NOT EXISTS `mtcs_softpren` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 USE `mtcs_softpren`;
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `t_rank`
+--
+
+CREATE TABLE `t_rank` (
+  `rankId` int(11) NOT NULL,
+  `rankName` varchar(255) NOT NULL,
+  `description` varchar(1024) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `t_rank`
+--
+
+INSERT INTO `t_rank` (`rankId`, `rankName`, `description`) VALUES
+(1, 'Rank A', 'Rank with the name A edit test 6'),
+(8, 'Rank B', 'Rank with the name B Edit test 5'),
+(9, 'Rank C', 'Rank with the name C test edit 4');
 
 -- --------------------------------------------------------
 
@@ -64,11 +85,17 @@ CREATE TABLE `t_user` (
 --
 
 INSERT INTO `t_user` (`userId`, `userName`, `roleId`, `userPassword`, `active`, `lastLogin`, `lastIP`) VALUES
-('system', 'MIIT DEVELOPER', 1, 'U2FsdGVkX1/rkR8/1pL6MUJvxfVtSk7Nd+lC8x3y08s=', 1, '2025-03-18 14:49:30', '192.168.1.188');
+('system', 'MIIT DEVELOPER', 1, 'U2FsdGVkX1/rkR8/1pL6MUJvxfVtSk7Nd+lC8x3y08s=', 1, '2025-03-18 16:16:48', '192.168.1.188');
 
 --
 -- Indexes for dumped tables
 --
+
+--
+-- Indeks untuk tabel `t_rank`
+--
+ALTER TABLE `t_rank`
+  ADD PRIMARY KEY (`rankId`);
 
 --
 -- Indeks untuk tabel `t_roles`
@@ -85,6 +112,12 @@ ALTER TABLE `t_user`
 --
 -- AUTO_INCREMENT untuk tabel yang dibuang
 --
+
+--
+-- AUTO_INCREMENT untuk tabel `t_rank`
+--
+ALTER TABLE `t_rank`
+  MODIFY `rankId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT untuk tabel `t_roles`

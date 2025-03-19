@@ -29,7 +29,10 @@ app.use(
 
 // Endpoint API
 const authRoutes = require('./routes/authRoutes')
+const rankRoutes = require('./routes/rankRoutes')
 app.use('/auth', authRoutes)
+app.use('/ranks', rankRoutes)
+
 
 app.post('/auth/login', (req, res) => {
     console.log('request')
