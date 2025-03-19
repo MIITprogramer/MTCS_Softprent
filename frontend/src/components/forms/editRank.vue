@@ -49,7 +49,7 @@
         block
         color="primary"
         dark
-        >Add</v-btn
+        >Edit</v-btn
       >
     </v-card-text>
   </v-card>

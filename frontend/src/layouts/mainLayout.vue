@@ -2,7 +2,7 @@
   <v-app>
     <v-app-bar>
       <template v-slot:append>
-        <v-btn flat icon @click="settingsDrawer = true">
+        <v-btn flat icon @click="settingsDrawer = !settingsDrawer">
           <v-icon>mdi-cogs</v-icon>
         </v-btn>
       </template>
