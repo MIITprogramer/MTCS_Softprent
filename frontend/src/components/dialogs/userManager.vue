@@ -19,7 +19,7 @@
               <v-text-field
                 variant="outlined"
                 rounded="pill"
-                label="Search Roles"
+                label="Search User"
                 prepend-inner-icon="mdi-magnify"
                 hide-details=""
                 density="compact"

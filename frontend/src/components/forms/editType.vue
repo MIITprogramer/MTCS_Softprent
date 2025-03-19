@@ -1,11 +1,11 @@
 <template>
   <v-card
-    title="Edit Role"
+    title="Edit Type"
     rounded="xl"
-    subtitle="Please provide your role informations"
+    subtitle="Please provide your type informations"
   >
     <template v-slot:prepend>
-      <v-icon size="50">mdi-shield-account</v-icon>
+      <v-icon size="50">mdi-wrench-cog</v-icon>
     </template>
     <template v-slot:append>
       <v-btn @click="closeDialog" flat icon>
@@ -17,22 +17,11 @@
       <v-text-field
         variant="outlined"
         rounded="pill"
-        label="Role Name"
-        v-model="formData.roleName"
-        hint="Please insert a role name."
+        label="Type Name"
+        v-model="formData.typeName"
+        hint="Please insert a type name."
         class="mb-3"
-        :error-messages="validator.roleName.$errors.map((e) => e.$message)"
-      />
-      <v-select
-        prepend-inner-icon="mdi-monitor-dashboard"
-        label="Select Dashboard"
-        variant="outlined"
-        rounded="pill"
-        :items="dashboardPages"
-        item-title="name"
-        item-value="path"
-        v-model="formData.dashboardPage"
-        :error-messages="validator.dashboardPage.$errors.map((e) => e.$message)"
+        :error-messages="validator.typeName.$errors.map((e) => e.$message)"
       />
       <v-divider class="mb-3"></v-divider>
       <v-btn
@@ -54,22 +43,16 @@ import useVuelidate from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
 import { reactive } from "vue";
 
-let dashboardPages = router.getRoutes();
 const store = useAppStore();
 const alert = store.alert;
-dashboardPages = dashboardPages.filter((e) => e.name != undefined);
 const props = defineProps(["closeDialog", "selectedItem"]);
 const formData = reactive({
-  roleId: props.selectedItem.roleId,
-  roleName: props.selectedItem.roleName,
-  dashboardPage: props.selectedItem.dashboardPage,
+  typeName: props.selectedItem.typeName,
+  typeId: props.selectedItem.typeId,
 });
 const rules = {
-  roleName: {
-    required: helpers.withMessage("Role name is required", required),
-  },
-  dashboardPage: {
-    required: helpers.withMessage("Please select a dashboard page", required),
+  typeName: {
+    required: helpers.withMessage("Type name is required", required),
   },
 };
 const validator = useVuelidate(rules, formData);
@@ -84,10 +67,10 @@ const submit = async () => {
         timer: 3000,
       };
     }
-    await store.ajax(formData, "auth/editrole", "post");
+    await store.ajax(formData, "type/edittype", "post");
     alert.fire({
-      title: "Role Added",
-      text: "Role added successfully.",
+      title: "Type Edited",
+      text: "Type edited successfully.",
       icon: "success",
       timer: 3000,
     });

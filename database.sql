@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 19 Mar 2025 pada 16.30
+-- Waktu pembuatan: 19 Mar 2025 pada 22.09
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.0.30
 
@@ -73,6 +73,13 @@ CREATE TABLE `t_checkmethod` (
   `resultType` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data untuk tabel `t_checkmethod`
+--
+
+INSERT INTO `t_checkmethod` (`methodId`, `pointCheckId`, `methodString`, `resultType`) VALUES
+(2, 8, 'test 1', 2);
+
 -- --------------------------------------------------------
 
 --
@@ -113,9 +120,16 @@ INSERT INTO `t_collumns` (`collumnId`, `collumnEnString`, `columnJpString`, `isD
 
 CREATE TABLE `t_pointcheck` (
   `checkId` int(11) NOT NULL,
-  `typeId` int(11) NOT NULL,
+  `rankId` int(11) NOT NULL,
   `pointString` varchar(128) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `t_pointcheck`
+--
+
+INSERT INTO `t_pointcheck` (`checkId`, `rankId`, `pointString`) VALUES
+(8, 1, 'test 2');
 
 -- --------------------------------------------------------
 
@@ -134,9 +148,8 @@ CREATE TABLE `t_rank` (
 --
 
 INSERT INTO `t_rank` (`rankId`, `rankName`, `description`) VALUES
-(1, 'Rank A', 'Rank with the name A'),
-(8, 'Rank B', 'Rank with the name B'),
-(9, 'Rank C', 'Rank with the name C');
+(1, 'Rank A', 'Rank A Inspection Tool have to be done External Calibration at least once in a year.'),
+(8, 'Rank B', 'Rank B Inspection Tool have to be done External Calibration at least once in a year or more.');
 
 -- --------------------------------------------------------
 
@@ -202,7 +215,7 @@ CREATE TABLE `t_user` (
 --
 
 INSERT INTO `t_user` (`userId`, `userName`, `roleId`, `userPassword`, `active`, `lastLogin`, `lastIP`) VALUES
-('system', 'MIIT DEVELOPER', 1, 'U2FsdGVkX1/rkR8/1pL6MUJvxfVtSk7Nd+lC8x3y08s=', 1, '2025-03-18 16:16:48', '192.168.1.188');
+('system', 'MIIT DEVELOPER', 1, 'U2FsdGVkX1/rkR8/1pL6MUJvxfVtSk7Nd+lC8x3y08s=', 1, '2025-03-19 16:13:01', '192.168.1.188');
 
 --
 -- Indexes for dumped tables
@@ -224,7 +237,8 @@ ALTER TABLE `tooldata`
 -- Indeks untuk tabel `t_checkmethod`
 --
 ALTER TABLE `t_checkmethod`
-  ADD PRIMARY KEY (`methodId`);
+  ADD PRIMARY KEY (`methodId`),
+  ADD KEY `fk_checkmethod_pointcheck` (`pointCheckId`);
 
 --
 -- Indeks untuk tabel `t_collumns`
@@ -236,7 +250,8 @@ ALTER TABLE `t_collumns`
 -- Indeks untuk tabel `t_pointcheck`
 --
 ALTER TABLE `t_pointcheck`
-  ADD PRIMARY KEY (`checkId`);
+  ADD PRIMARY KEY (`checkId`),
+  ADD KEY `fk_pointcheck_rank` (`rankId`);
 
 --
 -- Indeks untuk tabel `t_rank`
@@ -288,7 +303,7 @@ ALTER TABLE `tooldata`
 -- AUTO_INCREMENT untuk tabel `t_checkmethod`
 --
 ALTER TABLE `t_checkmethod`
-  MODIFY `methodId` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `methodId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT untuk tabel `t_collumns`
@@ -300,7 +315,7 @@ ALTER TABLE `t_collumns`
 -- AUTO_INCREMENT untuk tabel `t_pointcheck`
 --
 ALTER TABLE `t_pointcheck`
-  MODIFY `checkId` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `checkId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT untuk tabel `t_rank`
@@ -324,7 +339,23 @@ ALTER TABLE `t_tools`
 -- AUTO_INCREMENT untuk tabel `t_tooltype`
 --
 ALTER TABLE `t_tooltype`
-  MODIFY `typeId` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `typeId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- Ketidakleluasaan untuk tabel pelimpahan (Dumped Tables)
+--
+
+--
+-- Ketidakleluasaan untuk tabel `t_checkmethod`
+--
+ALTER TABLE `t_checkmethod`
+  ADD CONSTRAINT `fk_checkmethod_pointcheck` FOREIGN KEY (`pointCheckId`) REFERENCES `t_pointcheck` (`checkId`) ON DELETE CASCADE;
+
+--
+-- Ketidakleluasaan untuk tabel `t_pointcheck`
+--
+ALTER TABLE `t_pointcheck`
+  ADD CONSTRAINT `fk_pointcheck_rank` FOREIGN KEY (`rankId`) REFERENCES `t_rank` (`rankId`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

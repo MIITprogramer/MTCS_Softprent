@@ -1,5 +1,5 @@
 <template>
-  <v-card :title="'RANK MANAGER'" rounded="xl">
+  <v-card :title="'TOOL TYPES MANAGER'" rounded="xl">
     <template v-slot:append>
       <v-btn @click="closeDialog" flat icon>
         <v-icon>mdi-close</v-icon>
@@ -10,7 +10,7 @@
         hover=""
         class="text-uppercase"
         :search="Search"
-        :items="ranks"
+        :items="types"
         :headers="headers"
       >
         <template v-slot:top>
@@ -19,7 +19,7 @@
               <v-text-field
                 variant="outlined"
                 rounded="pill"
-                label="Search Rank"
+                label="Search Types"
                 prepend-inner-icon="mdi-magnify"
                 hide-details=""
                 density="compact"
@@ -34,16 +34,16 @@
                 block
                 dark
                 prepend-icon="mdi-plus"
-                @click="openDialog('addRank', null)"
+                @click="openDialog('addType', null)"
               >
-                ADD RANK
+                ADD TYPE
               </v-btn>
             </v-col>
           </v-row>
         </template>
-        <template v-slot:item.rankId="{ item }">
+        <template v-slot:item.typeId="{ item }">
           <v-btn
-            @click="openDialog('editRank', item)"
+            @click="openDialog('editType', item)"
             flat
             icon
             color="transparent"
@@ -55,7 +55,7 @@
             flat
             icon
             color="transparent"
-            @click="openDialog('deleteRank', item)"
+            @click="openDialog('deleteType', item)"
           >
             <v-icon color="error">mdi-delete</v-icon>
           </v-btn>
@@ -71,17 +71,17 @@
     max-width="700px"
     transition="dialog-transition"
   >
-    <AddRank :close-dialog="closeMyDialog" v-if="selectedDialog == 'addRank'" />
-    <EditRank
+    <AddType :close-dialog="closeMyDialog" v-if="selectedDialog == 'addType'" />
+    <EditType
       :selected-item="selectedItem"
       :close-dialog="closeMyDialog"
-      v-if="selectedDialog == 'editRank'"
+      v-if="selectedDialog == 'editType'"
     >
-    </EditRank>
+    </EditType>
     <v-card
       rounded="xl"
-      v-if="selectedDialog == 'deleteRank'"
-      :title="`You are going to delete ${selectedItem.rankName.toUpperCase()}.`"
+      v-if="selectedDialog == 'deleteType'"
+      :title="`You are going to delete ${selectedItem.typeName.toUpperCase()}.`"
       subtitle="Please confirm your action."
     >
       <template v-slot:prepend>
@@ -107,7 +107,7 @@
               rounded="pill"
               color="error"
               prepend-icon="mdi-delete"
-              @click="deleteRank"
+              @click="deleteType"
               >Delete</v-btn
             >
           </v-col>
@@ -119,32 +119,27 @@
 <script setup>
 import { onMounted, ref } from "vue";
 import { useAppStore } from "@/store/app";
-import AddRank from "../forms/addRank.vue";
-import EditRank from "../forms/editRank.vue";
+import AddType from "../forms/addType.vue";
+import EditType from "../forms/editType.vue";
 
 const store = useAppStore();
 const alert = store.alert;
 const dialog = ref(false);
 const selectedDialog = ref(null);
-const ranks = ref([]);
+const types = ref([]);
 const Search = ref("");
 const selectedItem = ref(null);
 
 const headers = [
   {
-    title: "Rank Name",
-    key: "rankName",
-    align: "start",
-  },
-  {
-    title: "Description",
-    key: "description",
+    title: "Type Name",
+    key: "typeName",
     align: "start",
   },
 
   {
     title: "Actions",
-    key: "rankId",
+    key: "typeId",
     align: "center",
     sortable: false,
   },
@@ -160,19 +155,19 @@ const openDialog = (key, item) => {
 
 const closeMyDialog = () => {
   dialog.value = false;
-  refreshRank();
+  refreshType();
 };
 
-const refreshRank = async () => {
-  ranks.value = await store.ajax({}, "ranks", "post");
+const refreshType = async () => {
+  types.value = await store.ajax({}, "type", "post");
 };
 
-const deleteRank = async () => {
+const deleteType = async () => {
   try {
-    await store.ajax(selectedItem.value, "ranks/deleterank", "post");
+    await store.ajax(selectedItem.value, "type/deletetype", "post");
     alert.fire({
-      title: "Rank deleted",
-      text: "Rank deleted successfully",
+      title: "Type deleted",
+      text: "Type deleted successfully",
       icon: "success",
       timer: 3000,
     });
@@ -184,6 +179,6 @@ const deleteRank = async () => {
 };
 
 onMounted(() => {
-  refreshRank();
+  refreshType();
 });
 </script>

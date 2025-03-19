@@ -1,11 +1,11 @@
 <template>
   <v-card
-    title="Edit Role"
+    title="Edit Point Check"
     rounded="xl"
-    subtitle="Please provide your role informations"
+    subtitle="Please provide your point informations"
   >
     <template v-slot:prepend>
-      <v-icon size="50">mdi-shield-account</v-icon>
+      <v-icon size="50">mdi-checkbox-marked-outline</v-icon>
     </template>
     <template v-slot:append>
       <v-btn @click="closeDialog" flat icon>
@@ -17,22 +17,20 @@
       <v-text-field
         variant="outlined"
         rounded="pill"
-        label="Role Name"
-        v-model="formData.roleName"
-        hint="Please insert a role name."
+        label="Point Check"
+        v-model="formData.pointString"
+        hint="Please insert a type name."
         class="mb-3"
-        :error-messages="validator.roleName.$errors.map((e) => e.$message)"
+        :error-messages="validator.pointString.$errors.map((e) => e.$message)"
       />
       <v-select
-        prepend-inner-icon="mdi-monitor-dashboard"
-        label="Select Dashboard"
+        :items="ranks"
         variant="outlined"
         rounded="pill"
-        :items="dashboardPages"
-        item-title="name"
-        item-value="path"
-        v-model="formData.dashboardPage"
-        :error-messages="validator.dashboardPage.$errors.map((e) => e.$message)"
+        label="Select Rank"
+        item-title="rankName"
+        item-value="rankId"
+        v-model="formData.rankId"
       />
       <v-divider class="mb-3"></v-divider>
       <v-btn
@@ -42,34 +40,32 @@
         block
         color="primary"
         dark
-        >Edit</v-btn
+        >Add</v-btn
       >
     </v-card-text>
   </v-card>
 </template>
 <script setup>
-import router from "@/router";
 import { useAppStore } from "@/store/app";
 import useVuelidate from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
-import { reactive } from "vue";
+import { onBeforeMount, reactive, ref } from "vue";
 
-let dashboardPages = router.getRoutes();
 const store = useAppStore();
+const ranks = ref([]);
 const alert = store.alert;
-dashboardPages = dashboardPages.filter((e) => e.name != undefined);
 const props = defineProps(["closeDialog", "selectedItem"]);
 const formData = reactive({
-  roleId: props.selectedItem.roleId,
-  roleName: props.selectedItem.roleName,
-  dashboardPage: props.selectedItem.dashboardPage,
+  pointString: props.selectedItem.pointString,
+  rankId: props.selectedItem.rankId,
+  checkId: props.selectedItem.checkId,
 });
 const rules = {
-  roleName: {
-    required: helpers.withMessage("Role name is required", required),
+  pointString: {
+    required: helpers.withMessage("Point check is required", required),
   },
-  dashboardPage: {
-    required: helpers.withMessage("Please select a dashboard page", required),
+  rankId: {
+    required: helpers.withMessage("Please select a rank", required),
   },
 };
 const validator = useVuelidate(rules, formData);
@@ -84,10 +80,10 @@ const submit = async () => {
         timer: 3000,
       };
     }
-    await store.ajax(formData, "auth/editrole", "post");
+    await store.ajax(formData, "point/editpoint", "post");
     alert.fire({
-      title: "Role Added",
-      text: "Role added successfully.",
+      title: "Point Edited",
+      text: "Point edited successfully.",
       icon: "success",
       timer: 3000,
     });
@@ -97,4 +93,11 @@ const submit = async () => {
     alert.fire(error);
   }
 };
+const refreshRank = async () => {
+  ranks.value = await store.ajax({}, "ranks", "post");
+};
+
+onBeforeMount(() => {
+  refreshRank();
+});
 </script>

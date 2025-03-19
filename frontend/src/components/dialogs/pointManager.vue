@@ -1,5 +1,5 @@
 <template>
-  <v-card :title="'RANK MANAGER'" rounded="xl">
+  <v-card :title="'POINT CHECK SETUP'" rounded="xl">
     <template v-slot:append>
       <v-btn @click="closeDialog" flat icon>
         <v-icon>mdi-close</v-icon>
@@ -10,7 +10,7 @@
         hover=""
         class="text-uppercase"
         :search="Search"
-        :items="ranks"
+        :items="points"
         :headers="headers"
       >
         <template v-slot:top>
@@ -19,7 +19,7 @@
               <v-text-field
                 variant="outlined"
                 rounded="pill"
-                label="Search Rank"
+                label="Search points"
                 prepend-inner-icon="mdi-magnify"
                 hide-details=""
                 density="compact"
@@ -34,16 +34,16 @@
                 block
                 dark
                 prepend-icon="mdi-plus"
-                @click="openDialog('addRank', null)"
+                @click="openDialog('addPoint', null)"
               >
-                ADD RANK
+                ADD Point
               </v-btn>
             </v-col>
           </v-row>
         </template>
-        <template v-slot:item.rankId="{ item }">
+        <template v-slot:item.checkId="{ item }">
           <v-btn
-            @click="openDialog('editRank', item)"
+            @click="openDialog('editPoint', item)"
             flat
             icon
             color="transparent"
@@ -55,9 +55,20 @@
             flat
             icon
             color="transparent"
-            @click="openDialog('deleteRank', item)"
+            @click="openDialog('deletePoint', item)"
           >
             <v-icon color="error">mdi-delete</v-icon>
+          </v-btn>
+        </template>
+
+        <template v-slot:item.methodes="{ item }">
+          <v-btn
+            @click="openDialog('openMethod', item)"
+            flat
+            icon
+            color="transparent"
+          >
+            <v-icon color="primary">mdi-information-outline</v-icon>
           </v-btn>
         </template>
       </v-data-table>
@@ -71,17 +82,20 @@
     max-width="700px"
     transition="dialog-transition"
   >
-    <AddRank :close-dialog="closeMyDialog" v-if="selectedDialog == 'addRank'" />
-    <EditRank
+    <AddPoint
+      :close-dialog="closeMyDialog"
+      v-if="selectedDialog == 'addPoint'"
+    />
+    <EditPoint
       :selected-item="selectedItem"
       :close-dialog="closeMyDialog"
-      v-if="selectedDialog == 'editRank'"
+      v-if="selectedDialog == 'editPoint'"
     >
-    </EditRank>
+    </EditPoint>
     <v-card
       rounded="xl"
-      v-if="selectedDialog == 'deleteRank'"
-      :title="`You are going to delete ${selectedItem.rankName.toUpperCase()}.`"
+      v-if="selectedDialog == 'deletePoint'"
+      :title="`You are going to delete ${selectedItem.rankName.toUpperCase()} - ${selectedItem.pointString.toUpperCase()}.`"
       subtitle="Please confirm your action."
     >
       <template v-slot:prepend>
@@ -107,11 +121,26 @@
               rounded="pill"
               color="error"
               prepend-icon="mdi-delete"
-              @click="deleteRank"
+              @click="deletePoint"
               >Delete</v-btn
             >
           </v-col>
         </v-row>
+      </v-card-text>
+    </v-card>
+    <v-card rounded="xl" v-if="selectedDialog == 'openMethod'">
+      <template v-slot:title>
+        <div class="text-uppercase">
+          {{ `${selectedItem.rankName} ${selectedItem.pointString} Methods` }}
+        </div>
+      </template>
+      <template v-slot:append>
+        <v-btn @click="closeMyDialog" flat icon color="transparent">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </template>
+      <v-card-text>
+        <MethodManager :point="selectedItem"></MethodManager>
       </v-card-text>
     </v-card>
   </v-dialog>
@@ -119,32 +148,36 @@
 <script setup>
 import { onMounted, ref } from "vue";
 import { useAppStore } from "@/store/app";
-import AddRank from "../forms/addRank.vue";
-import EditRank from "../forms/editRank.vue";
-
+import EditPoint from "../forms/editPoint.vue";
+import AddPoint from "../forms/addPoint.vue";
+import MethodManager from "./methodManager.vue";
 const store = useAppStore();
 const alert = store.alert;
 const dialog = ref(false);
 const selectedDialog = ref(null);
-const ranks = ref([]);
+const points = ref([]);
 const Search = ref("");
 const selectedItem = ref(null);
-
 const headers = [
+  {
+    title: "Point Check",
+    key: "pointString",
+    align: "start",
+  },
   {
     title: "Rank Name",
     key: "rankName",
     align: "start",
   },
   {
-    title: "Description",
-    key: "description",
-    align: "start",
+    title: "Methodes",
+    key: "methodes",
+    align: "center",
+    sortable: false,
   },
-
   {
     title: "Actions",
-    key: "rankId",
+    key: "checkId",
     align: "center",
     sortable: false,
   },
@@ -160,19 +193,19 @@ const openDialog = (key, item) => {
 
 const closeMyDialog = () => {
   dialog.value = false;
-  refreshRank();
+  refreshPoint();
 };
 
-const refreshRank = async () => {
-  ranks.value = await store.ajax({}, "ranks", "post");
+const refreshPoint = async () => {
+  points.value = await store.ajax({}, "point", "post");
 };
 
-const deleteRank = async () => {
+const deletePoint = async () => {
   try {
-    await store.ajax(selectedItem.value, "ranks/deleterank", "post");
+    await store.ajax(selectedItem.value, "point/deletepoint", "post");
     alert.fire({
-      title: "Rank deleted",
-      text: "Rank deleted successfully",
+      title: "Point deleted",
+      text: "Point deleted successfully",
       icon: "success",
       timer: 3000,
     });
@@ -184,6 +217,6 @@ const deleteRank = async () => {
 };
 
 onMounted(() => {
-  refreshRank();
+  refreshPoint();
 });
 </script>

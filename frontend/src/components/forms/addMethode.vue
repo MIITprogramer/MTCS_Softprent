@@ -1,14 +1,14 @@
 <template>
   <v-card
-    title="Edit Role"
+    title="Add New Check Method"
     rounded="xl"
-    subtitle="Please provide your role informations"
+    subtitle="Please provide your method informations"
   >
     <template v-slot:prepend>
-      <v-icon size="50">mdi-shield-account</v-icon>
+      <v-icon size="50">mdi-function-variant</v-icon>
     </template>
     <template v-slot:append>
-      <v-btn @click="closeDialog" flat icon>
+      <v-btn @click="closeDialog(null)" flat icon>
         <v-icon>mdi-close</v-icon>
       </v-btn>
     </template>
@@ -17,22 +17,20 @@
       <v-text-field
         variant="outlined"
         rounded="pill"
-        label="Role Name"
-        v-model="formData.roleName"
-        hint="Please insert a role name."
+        label="Check Method"
+        v-model="formData.methodString"
+        hint="Please insert a check method."
         class="mb-3"
-        :error-messages="validator.roleName.$errors.map((e) => e.$message)"
+        :error-messages="validator.methodString.$errors.map((e) => e.$message)"
       />
       <v-select
-        prepend-inner-icon="mdi-monitor-dashboard"
-        label="Select Dashboard"
+        :items="resultTypes"
         variant="outlined"
         rounded="pill"
-        :items="dashboardPages"
-        item-title="name"
-        item-value="path"
-        v-model="formData.dashboardPage"
-        :error-messages="validator.dashboardPage.$errors.map((e) => e.$message)"
+        label="Select Result Type"
+        item-title="typeLabel"
+        item-value="typeId"
+        v-model="formData.resultType"
       />
       <v-divider class="mb-3"></v-divider>
       <v-btn
@@ -42,34 +40,40 @@
         block
         color="primary"
         dark
-        >Edit</v-btn
+        >Add</v-btn
       >
     </v-card-text>
   </v-card>
 </template>
 <script setup>
-import router from "@/router";
 import { useAppStore } from "@/store/app";
 import useVuelidate from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
-import { reactive } from "vue";
+import { onBeforeMount, reactive, ref, watch } from "vue";
 
-let dashboardPages = router.getRoutes();
 const store = useAppStore();
+const resultTypes = ref([]);
 const alert = store.alert;
-dashboardPages = dashboardPages.filter((e) => e.name != undefined);
-const props = defineProps(["closeDialog", "selectedItem"]);
+const props = defineProps(["closeDialog"]);
 const formData = reactive({
-  roleId: props.selectedItem.roleId,
-  roleName: props.selectedItem.roleName,
-  dashboardPage: props.selectedItem.dashboardPage,
+  methodString: "",
+  resultType: "",
+  typeLabel: "",
 });
+
+watch(
+  () => formData.resultType,
+  (data) => {
+    const item = resultTypes.value.find((e) => e.typeId == data);
+    formData.typeLabel = item.typeLabel;
+  }
+);
 const rules = {
-  roleName: {
-    required: helpers.withMessage("Role name is required", required),
+  methodString: {
+    required: helpers.withMessage("Check method is required", required),
   },
-  dashboardPage: {
-    required: helpers.withMessage("Please select a dashboard page", required),
+  resultType: {
+    required: helpers.withMessage("Please select a result type", required),
   },
 };
 const validator = useVuelidate(rules, formData);
@@ -84,17 +88,23 @@ const submit = async () => {
         timer: 3000,
       };
     }
-    await store.ajax(formData, "auth/editrole", "post");
+    props.closeDialog(formData);
     alert.fire({
-      title: "Role Added",
-      text: "Role added successfully.",
+      title: "Method Added",
+      text: "Method added successfully.",
       icon: "success",
       timer: 3000,
     });
-    props.closeDialog();
   } catch (error) {
     console.log(error);
     alert.fire(error);
   }
 };
+const refreshRank = async () => {
+  resultTypes.value = await store.ajax({}, "type/resulttype", "post");
+};
+
+onBeforeMount(() => {
+  refreshRank();
+});
 </script>

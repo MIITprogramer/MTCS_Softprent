@@ -1,6 +1,6 @@
 <template>
   <v-card
-    title="Add New Rank"
+    title="Edit Rank"
     rounded="xl"
     subtitle="Please provide your rank informations"
   >

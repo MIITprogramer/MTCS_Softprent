@@ -1,6 +1,6 @@
 <template>
   <v-card
-    title="Add New User"
+    title="Edit User"
     rounded="xl"
     subtitle="Please provide your user informations"
   >
