@@ -4,6 +4,8 @@ const readline = require("readline");
 const { execSync } = require("child_process");
 const os = require("os");
 
+const isWindows = os.platform() === "win32";
+
 // Fungsi untuk membaca input dari user
 const rl = readline.createInterface({
     input: process.stdin,
@@ -24,6 +26,9 @@ async function main() {
     const LOCAL_IP = await askQuestion("Masukkan LOCAL_IP: ");
     const LOCAL_PORT = await askQuestion("Masukkan LOCAL_PORT: ");
     const SQL_PATH = await askQuestion("Masukkan path SQL: ");
+
+
+    const mysqlCommand = isWindows ? path.join(SQL_PATH, "mysql.exe") : "mysql";
 
     rl.close();
 
@@ -98,7 +103,7 @@ VITE_API_PORT=${LOCAL_PORT}
         if (databaseExists) {
             console.log("⚠️ Database 'mtcs-softpren' sudah ada. Menghapus database...");
             try {
-                const mysqlPath = path.join(SQL_PATH, "mysql.exe");
+                const mysqlPath = path.join(SQL_PATH, mysqlCommand);
                 const dropCommand = `"${mysqlPath}" -h ${DB_HOST} -u ${DB_USER} ${DB_PASS ? `-p${DB_PASS}` : ""} -e "DROP DATABASE mtcs_softpren;"`;
                 execSync(dropCommand, { stdio: "inherit", shell: true });
 
