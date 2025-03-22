@@ -23,9 +23,9 @@ async function main() {
     const DB_PASS = await askQuestion("Masukkan DB_PASS: ");
     const LOCAL_IP = await askQuestion("Masukkan LOCAL_IP: ");
     const LOCAL_PORT = await askQuestion("Masukkan LOCAL_PORT: ");
+    const osType = await askQuestion("Pilih sistem operasi (1: Windows, 2: Linux): ");
     const SQL_PATH = await askQuestion("Masukkan path SQL: ");
 
-    const osType = await askQuestion("Pilih sistem operasi (1: Windows, 2: Linux): ");
     let mysqlCommand = "";
 
     if (osType === "1") {
@@ -33,6 +33,8 @@ async function main() {
     } else {
         mysqlCommand = "mysql";
     }
+
+    console.log(mysqlCommand)
 
 
 
@@ -122,7 +124,7 @@ VITE_API_PORT=${LOCAL_PORT}
         }
 
         try {
-            const mysqlPath = path.join(SQL_PATH, "mysql.exe");
+            const mysqlPath = path.join(SQL_PATH, mysqlCommand);
             const importCommand = `"${mysqlPath}" -h ${DB_HOST} -u ${DB_USER} ${DB_PASS ? `-p${DB_PASS}` : ""} < ${sqlFilePath}`;
             execSync(importCommand, { stdio: "inherit", shell: true });
 
