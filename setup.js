@@ -51,6 +51,7 @@ SQL_PATH=${SQL_PATH}
 `;
 
     fs.writeFileSync(path.join(__dirname, ".env"), backendEnvContent);
+    fs.writeFileSync(path.join(__dirname, "backend/.env"), backendEnvContent);
     console.log("✅ File .env untuk backend berhasil dibuat.");
 
     // 3. Buat file .env di frontend
