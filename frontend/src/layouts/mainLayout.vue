@@ -35,7 +35,7 @@
       </v-list>
     </v-navigation-drawer>
     <v-main>
-      <router-view />
+      <router-view v-if="!settingsDrawer" />
     </v-main>
   </v-app>
   <v-dialog

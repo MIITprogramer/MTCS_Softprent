@@ -54,6 +54,19 @@
           </div>
         </template>
 
+        <template v-slot:item.init="{ item }">
+          <div>
+            <v-btn
+              @click="openDialog('manageData', item)"
+              variant="outlined"
+              rounded="pill"
+              prepend-icon="mdi-information-outline"
+            >
+              Manage Tool Data
+            </v-btn>
+          </div>
+        </template>
+
         <template v-slot:item.actions="{ item }">
           <div>
             <v-btn
@@ -112,6 +125,25 @@
     </v-card>
 
     <v-card
+      subtitle="Manage tool's Data"
+      :title="`${selectedItem.toolName}'s Detail`"
+      rounded="xl"
+      v-if="selectedDialog == 'manageData'"
+    >
+      <template v-slot:prepend>
+        <v-icon size="50">mdi-checkbox-outline</v-icon>
+      </template>
+
+      <template v-slot:append>
+        <v-btn flat icon color="transparent" @click="closeMyDialog">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </template>
+      <v-card-text>
+        <DataManager :tool="selectedItem"></DataManager>
+      </v-card-text>
+    </v-card>
+    <v-card
       rounded="xl"
       v-if="selectedDialog == 'deleteTool'"
       :title="`You are going to delete ${selectedItem.toolName.toUpperCase()}.`"
@@ -155,6 +187,7 @@ import { useAppStore } from "@/store/app";
 import AddTool from "../forms/addTool.vue";
 import EditTool from "../forms/editTool.vue";
 import PointManager from "./pointManager.vue";
+import DataManager from "./dataManager.vue";
 
 const store = useAppStore();
 const alert = store.alert;
@@ -183,7 +216,14 @@ const headers = [
   {
     title: "Point Check",
     key: "toolId",
-    align: "start",
+    align: "center",
+    sortable: false,
+  },
+  {
+    title: "Initial Data",
+    key: "init",
+    align: "center",
+    sortable: false,
   },
   {
     title: "Actions",
@@ -211,6 +251,7 @@ const refreshUsers = async () => {
   tools.value = await store.ajax({}, "tool", "post");
   tools.value.forEach((tool, index) => {
     tools.value[index].actions = tool.userId;
+    tools.value[index].init = tool.userId;
   });
 };
 

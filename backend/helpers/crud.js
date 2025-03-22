@@ -16,6 +16,9 @@ class Crud {
             order: "ASC",
         };
     }
+    viewLastQuery() {
+        return this.lastQuery;
+    }
 
     select(str) {
         this.selectArr.push(str);
@@ -63,6 +66,8 @@ class Crud {
             this.query += ` ORDER BY ${this.order.field} ${this.order.order}`;
         }
 
+        this.lastQuery = this.query
+
         try {
             const [rows] = await database.promise().query(this.query, this.whereArr.map(w => w.value));
             this.clear(); // Reset state setelah operasi selesai
@@ -85,16 +90,20 @@ class Crud {
     }
 
     async update(table, data) {
-        this.query = `UPDATE ${table} SET ?`;
+        const fields = Object.keys(data).map(key => `${key} = ?`).join(", ");
+        const values = Object.values(data);
+
+        this.query = `UPDATE ${table} SET ${fields}`;
         let whereQuery = "";
 
         if (this.whereArr.length > 0) {
             whereQuery = " WHERE " + this.whereArr.map(w => `${w.key} ${w.operator} ?`).join(" AND ");
+            values.push(...this.whereArr.map(w => w.value));
         }
         this.query += whereQuery;
 
         try {
-            const [result] = await database.promise().query(this.query, [data, ...this.whereArr.map(w => w.value)]);
+            const [result] = await database.promise().query(this.query, values);
             this.clear();
             return result;
         } catch (err) {
@@ -102,18 +111,37 @@ class Crud {
             throw err;
         }
     }
+
 
     async delete(table) {
-        this.query = `DELETE FROM ${table}`;
-        let whereQuery = "";
-
-        if (this.whereArr.length > 0) {
-            whereQuery = " WHERE " + this.whereArr.map(w => `${w.key} ${w.operator} ?`).join(" AND ");
+        if (this.whereArr.length === 0) {
+            throw new Error("Delete operation requires at least one WHERE condition.");
         }
-        this.query += whereQuery;
+
+        // Tentukan primary key secara dinamis dari whereArr (default: "id")
+        let primaryKey = "id";
+        const eqCondition = this.whereArr.find(w => w.operator === "=");
+        if (eqCondition) {
+            primaryKey = eqCondition.key;
+        }
+
+        this.query = `DELETE FROM ${table} WHERE ` + this.whereArr.map(w => `${w.key} ${w.operator} ?`).join(" AND ");
 
         try {
+            // 1️⃣ Hapus data berdasarkan kondisi
             const [result] = await database.promise().query(this.query, this.whereArr.map(w => w.value));
+
+            // 2️⃣ Ambil MAX(id) dari tabel setelah penghapusan
+            const [[{ maxId }]] = await database.promise().query(`SELECT MAX(${primaryKey}) AS maxId FROM ${table}`);
+
+            // 3️⃣ Jika maxId valid (bukan null), atur ulang AUTO_INCREMENT
+            if (maxId !== null) {
+                await database.promise().query(`ALTER TABLE ${table} AUTO_INCREMENT = ?`, [maxId + 1]);
+            } else {
+                // Jika tabel kosong, reset AUTO_INCREMENT ke 1
+                await database.promise().query(`ALTER TABLE ${table} AUTO_INCREMENT = 1`);
+            }
+
             this.clear();
             return result;
         } catch (err) {
@@ -121,6 +149,8 @@ class Crud {
             throw err;
         }
     }
+
+
 
     async alter(table) {
         try {
@@ -136,6 +166,14 @@ class Crud {
     viewQuery() {
         return this.query;
     }
+    whereNotIn(key, values) {
+        if (values.length > 0) {
+            const placeholders = values.map(() => "?").join(", ");
+            this.whereArr.push({ key, operator: `NOT IN (${placeholders})`, value: values });
+        }
+        return this; // Agar bisa di-chain
+    }
+
 }
 
 module.exports = Crud;

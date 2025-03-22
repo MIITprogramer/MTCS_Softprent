@@ -24,7 +24,7 @@ const routes = [
       {
         path: '/home/dashboard',
         name: 'Main Dashboard',
-        component: () => import('@/views/pages/dashboardPage.vue'),
+        component: () => import('@/views/pages/controlList.vue'),
       },
     ],
   }
