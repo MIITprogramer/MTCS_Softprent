@@ -8,7 +8,7 @@
       <v-icon size="50">mdi-function-variant</v-icon>
     </template>
     <template v-slot:append>
-      <v-btn @click="closeDialog(null)" flat icon>
+      <v-btn @click="closeDialog()" flat icon>
         <v-icon>mdi-close</v-icon>
       </v-btn>
     </template>
@@ -58,18 +58,10 @@ const props = defineProps(["closeDialog", "method"]);
 const formData = reactive({
   methodString: props.method.methodString,
   resultType: props.method.resultType,
-  typeLabel: props.method.typeLabel,
   methodId: props.method.methodId,
   pointCheckId: props.method.pointCheckId,
 });
 
-watch(
-  () => formData.resultType,
-  (data) => {
-    const item = resultTypes.value.find((e) => e.typeId == data);
-    formData.typeLabel = item.typeLabel;
-  }
-);
 const rules = {
   methodString: {
     required: helpers.withMessage("Check method is required", required),
@@ -90,7 +82,8 @@ const submit = async () => {
         timer: 3000,
       };
     }
-    props.closeDialog(formData);
+    await store.ajax(formData, "point/editmethod", "post");
+    props.closeDialog();
   } catch (error) {
     console.log(error);
     alert.fire(error);

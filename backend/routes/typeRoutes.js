@@ -7,5 +7,6 @@ router.post('/', controller.getType)
 router.post('/edittype', controller.editType)
 router.post('/deletetype', controller.deleteType)
 router.post('/resulttype', controller.getResultType)
+router.post('/getpoints', controller.getPoints)
 
 module.exports = router

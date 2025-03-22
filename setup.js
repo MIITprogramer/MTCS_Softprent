@@ -178,6 +178,9 @@ pm2 resurrect
 
         fs.writeFileSync(batchFilePath, batchContent);
         console.log(`✅ File batch untuk resurrect PM2 telah disimpan di: ${batchFilePath}`);
+    } else {
+
+        execSync("pm2 startup", { stdio: "inherit" });
     }
 
     console.log("✅ Semua proses selesai!");

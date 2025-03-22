@@ -1,149 +1,186 @@
 <template>
-  <v-data-table
-    class="text-uppercase"
-    :headers="methodHeader"
-    hide-default-footer
-    :items="methods"
+  <v-card
+    :title="`${pointMethods.pointString}'s Check Methods`"
+    rounded="xl"
+    subtitle="Manage check methods in the point check"
   >
-    <template v-slot:top>
-      <div class="text-end w-100">
-        <v-btn
-          flat
-          color="primary"
-          variant="outlined"
-          rounded="pill"
-          prepend-icon="mdi-plus"
-          @click="addMethodeDialog = true"
-        >
-          add method
-        </v-btn>
-      </div>
+    <template v-slot:prepend>
+      <v-icon size="50">mdi-function-variant</v-icon>
     </template>
-    <template v-slot:item.key="{ item }">
-      <v-btn @click="openEdit(item)" flat icon color="transparent">
-        <v-icon color="primary">mdi-pencil</v-icon>
-      </v-btn>
-      <v-btn @click="deleteMethod(item)" flat icon color="transparent">
-        <v-icon color="error">mdi-delete</v-icon>
+    <template v-slot:append>
+      <v-btn flat icon color="transparent" @click="closeDialog">
+        <v-icon>mdi-close</v-icon>
       </v-btn>
     </template>
-  </v-data-table>
+    <v-card-text>
+      <v-data-table :headers="headers" :items="methods">
+        <template v-slot:top>
+          <v-row>
+            <v-col cols="3" offset="9">
+              <v-btn
+                @click="openDialog('addMethod')"
+                prepend-icon="mdi-plus"
+                variant="outlined"
+                rounded="pill"
+                block
+                color="primary"
+                dark
+                >Add Check Method</v-btn
+              >
+            </v-col>
+          </v-row>
+        </template>
+        <template v-slot:item.methodId="{ item }">
+          <v-btn
+            flat
+            icon
+            color="transparent"
+            @click="openDialog('editMethod', item)"
+          >
+            <v-icon color="primary">mdi-pencil</v-icon>
+          </v-btn>
+          <v-btn
+            @click="openDialog('deleteMethod', item)"
+            flat
+            icon
+            color="transparent"
+          >
+            <v-icon color="error">mdi-delete</v-icon>
+          </v-btn>
+        </template>
+      </v-data-table>
+    </v-card-text>
+  </v-card>
   <v-dialog
-    v-model="addMethodeDialog"
+    v-model="dialog"
     scrollable
     persistent
-    :overlay="false"
     max-width="500px"
+    :overlay="false"
     transition="dialog-transition"
   >
-    <AddMethode :close-dialog="addingMethod"></AddMethode>
-  </v-dialog>
-  <v-dialog
-    v-model="editMethodeDialog"
-    scrollable
-    persistent
-    :overlay="false"
-    max-width="500px"
-    transition="dialog-transition"
-  >
-    <EditMethode :method="selected" :close-dialog="editMethod"></EditMethode>
+    <AddMethod
+      v-if="buttonAction == 'addMethod'"
+      :close-dialog="closeMyDialog"
+      :point="pointCheckId"
+    ></AddMethod>
+
+    <EditMethod
+      v-if="buttonAction == 'editMethod'"
+      :close-dialog="closeMyDialog"
+      :method="selectedItem"
+    ></EditMethod>
+
+    <v-card
+      rounded="xl"
+      v-if="buttonAction == 'deleteMethod'"
+      :title="`You are going to delete ${selectedItem.methodString}.`"
+      subtitle="Please confirm your action."
+    >
+      <template v-slot:prepend>
+        <v-icon size="50" color="warning">mdi-help</v-icon>
+      </template>
+      <v-card-text>
+        <v-divider class="mb-3"></v-divider>
+        <v-row>
+          <v-col cols="6">
+            <v-btn
+              block
+              variant="outlined"
+              rounded="pill"
+              prepend-icon="mdi-arrow-u-left-bottom"
+              @click="closeMyDialog"
+              >cancel</v-btn
+            >
+          </v-col>
+          <v-col cols="6">
+            <v-btn
+              block
+              variant="outlined"
+              rounded="pill"
+              color="error"
+              prepend-icon="mdi-delete"
+              @click="deleteMethod"
+              >Delete</v-btn
+            >
+          </v-col>
+        </v-row>
+      </v-card-text>
+    </v-card>
   </v-dialog>
 </template>
 <script setup>
-import { nextTick, ref } from "vue";
-import AddMethode from "../forms/addMethod.vue";
 import { useAppStore } from "@/store/app";
-import EditMethode from "../forms/editMethod.vue";
+import { nextTick, onBeforeMount, ref } from "vue";
+import AddMethod from "../forms/addMethod.vue";
+import EditMethod from "../forms/editMethod.vue";
+EditMethod;
 
-let props = defineProps(["point"]);
-const methods = ref(props.point.methodes);
+const props = defineProps(["pointMethods", "closeDialog"]);
+const pointCheckId = props.pointMethods.checkId;
+const methods = ref([]);
 const store = useAppStore();
-const alert = store.alert;
-const selected = ref(null);
+const buttonAction = ref(null);
+const selectedItem = ref(null);
+const dialog = ref(false);
 
-const addMethodeDialog = ref(false);
-const editMethodeDialog = ref(false);
+const refrehMethods = async () => {
+  methods.value = await store.ajax(
+    { pointCheckId },
+    "point/getmethods",
+    "post"
+  );
+};
 
-const methodHeader = [
+const headers = [
   {
-    title: "Check Method",
     key: "methodString",
+    title: "Check Method",
     align: "start",
   },
   {
-    title: "Result Type",
     key: "typeLabel",
+    title: "Result Type",
     align: "start",
   },
   {
-    title: "Remove",
-    key: "key",
+    key: "methodId",
+    title: "Actions",
     align: "center",
     sortable: false,
   },
 ];
-const openEdit = (method) => {
-  selected.value = method;
-  console.log(method);
-  editMethodeDialog.value = true;
-};
-const addingMethod = async (fd) => {
-  try {
-    if (fd) {
-      fd.pointCheckId = props.point.checkId;
-      let added = await store.ajax(fd, "point/addmethod", "post");
-      fd.methodId = added.insertId;
-      addMethodeDialog.value = false;
-      methods.value.push(fd);
-    }
 
-    addMethodeDialog.value = false;
-  } catch (error) {
-    console.log(error);
-    alert.fire(error);
+const openDialog = async (action, item) => {
+  console.log(item);
+  if (item != undefined) {
+    selectedItem.value = item;
   }
+  buttonAction.value = action;
+  await nextTick();
+  dialog.value = true;
 };
-const editMethod = async (fd) => {
-  try {
-    if (fd) {
-      await store.ajax(fd, "point/editmethod", "post");
-
-      const index = methods.value.findIndex(
-        (item) => item.methodId === fd.methodId
-      );
-      if (index !== -1) {
-        methods.value[index] = { ...methods.value[index], ...fd };
-      }
-      await nextTick();
-      editMethodeDialog.value = false;
-    }
-    editMethodeDialog.value = false;
-  } catch (error) {
-    console.log(error);
-    alert.fire(error);
-  }
+const closeMyDialog = () => {
+  refrehMethods();
+  dialog.value = false;
 };
 
-const deleteMethod = async (item) => {
-  try {
-    const l = methods.value.length;
-    if (l == 1) {
-      throw {
-        title: "Could not delete",
-        text: "A point check is require at least one method",
-        icon: "error",
-        timer: 3000,
-      };
-    }
-
-    await store.ajax(item, "point/deletemethod", "post");
-
-    methods.value = methods.value.filter(
-      (method) => method.methodId != item.methodId
-    );
-  } catch (error) {
-    console.log(error);
-    alert.fire(error);
-  }
+const deleteMethod = async () => {
+  await store.ajax(
+    { methodId: selectedItem.value.methodId },
+    "point/deletemethod",
+    "post"
+  );
+  store.alert.fire({
+    title: "Method Deleted",
+    text: "Method deleted successfully!",
+    icon: "success",
+    timer: 3000,
+  });
+  closeMyDialog();
 };
+
+onBeforeMount(() => {
+  refrehMethods();
+});
 </script>

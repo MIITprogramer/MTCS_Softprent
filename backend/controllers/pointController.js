@@ -4,8 +4,8 @@ module.exports = {
     addPoint: async (req, res) => {
         try {
             const db = new crud
-            const { rankId, pointString, methodes } = req.body
-            const duplicate = await db.where('pointString', '=', pointString).where('rankId', '=', rankId).get('t_pointcheck')
+            const { typeId, pointString } = req.body
+            const duplicate = await db.where('pointString', '=', pointString).where('typeId', '=', typeId).get('t_pointcheck')
 
             if (duplicate.length > 0) {
                 throw {
@@ -16,13 +16,7 @@ module.exports = {
                 }
             }
 
-            const insert = await db.insert('t_pointcheck', { rankId, pointString })
-
-            await Promise.all(methodes.map(async (element) => {
-                element.pointCheckId = insert.insertId;
-                const { pointCheckId, methodString, resultType } = element;
-                return db.insert('t_checkmethod', { pointCheckId, methodString, resultType });
-            }));
+            await db.insert('t_pointcheck', { typeId, pointString })
 
             return res.status(200).json({ message: 'success' });
 
@@ -45,11 +39,17 @@ module.exports = {
 
         return res.status(200).json(points)
     },
+    getMethods: async (req, res) => {
+        const db = new crud
+        const pointCheckId = req.body.pointCheckId
+        const methods = await db.where('pointCheckId', '=', pointCheckId).join('left', 'resulttype', 'resulttype.typeId', 't_checkmethod.resultType').get('t_checkmethod')
+        return res.status(200).json(methods)
+    },
     editPoint: async (req, res) => {
         try {
             const db = new crud
-            const { rankId, pointString, checkId } = req.body
-            const duplicate = await db.where('pointString', '=', pointString).where('rankId', '=', rankId).where('checkId', '!=', checkId).get('t_pointcheck')
+            const { typeId, pointString, checkId } = req.body
+            const duplicate = await db.where('pointString', '=', pointString).where('typeId', '=', typeId).where('checkId', '!=', checkId).get('t_pointcheck')
 
             if (duplicate.length > 0) {
                 throw {
@@ -59,8 +59,9 @@ module.exports = {
                     timer: 3000,
                 }
             }
+
             db.where('checkId', '=', checkId)
-            await db.update('t_pointcheck', { rankId, pointString })
+            await db.update('t_pointcheck', { typeId, pointString })
 
             return res.status(200).json({ message: 'success' })
 

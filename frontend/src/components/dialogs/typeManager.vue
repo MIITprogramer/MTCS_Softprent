@@ -65,7 +65,7 @@
             variant="outlined"
             prepend-icon="mdi-information-outline"
             rounded="pill"
-            @click="openDialog('managePoints', item.points)"
+            @click="openDialog('managePoints', item)"
           >
             detail
           </v-btn>
@@ -81,17 +81,21 @@
     transition="dialog-transition"
   >
     <v-card
-      title="Points Detail"
+      subtitle="Manage Point Checks in the tool types"
+      :title="`${selectedItem.typeName}'s Points Detail '`"
       rounded="xl"
       v-if="selectedDialog == 'managePoints'"
     >
+      <template v-slot:prepend>
+        <v-icon size="50">mdi-checkbox-outline</v-icon>
+      </template>
       <template v-slot:append>
         <v-btn flat icon color="transparent" @click="closeMyDialog">
           <v-icon>mdi-close</v-icon>
         </v-btn>
       </template>
       <v-card-text>
-        <PointManager :type="selectedItem"></PointManager>
+        <PointManager :type-options="selectedItem"></PointManager>
       </v-card-text>
     </v-card>
     <AddType :close-dialog="closeMyDialog" v-if="selectedDialog == 'addType'" />

@@ -1,6 +1,6 @@
 <template>
   <v-card
-    title="Add New Check Method"
+    title="Add Method"
     rounded="xl"
     subtitle="Please provide your method informations"
   >
@@ -8,7 +8,7 @@
       <v-icon size="50">mdi-function-variant</v-icon>
     </template>
     <template v-slot:append>
-      <v-btn @click="closeDialog(null)" flat icon>
+      <v-btn flat icon color="transparent" @click="closeDialog">
         <v-icon>mdi-close</v-icon>
       </v-btn>
     </template>
@@ -16,7 +16,7 @@
       <v-divider class="mb-3"></v-divider>
       <v-textarea
         variant="outlined"
-        rounded="pill"
+        rounded="xl"
         label="Check Method"
         v-model="formData.methodString"
         hint="Please insert a check method."
@@ -31,6 +31,7 @@
         item-title="typeLabel"
         item-value="typeId"
         v-model="formData.resultType"
+        :error-messages="validator.resultType.$errors.map((e) => e.$message)"
       />
       <v-divider class="mb-3"></v-divider>
       <v-btn
@@ -49,25 +50,20 @@
 import { useAppStore } from "@/store/app";
 import useVuelidate from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
-import { nextTick, onBeforeMount, reactive, ref, watch } from "vue";
+import { onBeforeMount, reactive, ref } from "vue";
 
+const props = defineProps(["closeDialog", "point"]);
+const pointCheckId = props.point;
 const store = useAppStore();
-const resultTypes = ref([]);
 const alert = store.alert;
-const props = defineProps(["closeDialog"]);
+
+const resultTypes = ref([]);
 const formData = reactive({
+  pointCheckId,
   methodString: "",
   resultType: "",
-  typeLabel: "",
 });
 
-watch(
-  () => formData.resultType,
-  (data) => {
-    const item = resultTypes.value.find((e) => e.typeId == data);
-    formData.typeLabel = item.typeLabel;
-  }
-);
 const rules = {
   methodString: {
     required: helpers.withMessage("Check method is required", required),
@@ -77,6 +73,7 @@ const rules = {
   },
 };
 const validator = useVuelidate(rules, formData);
+
 const submit = async () => {
   try {
     const valid = await validator.value.$validate();
@@ -88,7 +85,8 @@ const submit = async () => {
         timer: 3000,
       };
     }
-    props.closeDialog(formData);
+    await store.ajax(formData, "point/addmethod", "post");
+    props.closeDialog();
   } catch (error) {
     console.log(error);
     alert.fire(error);

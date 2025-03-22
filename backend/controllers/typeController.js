@@ -96,5 +96,18 @@ module.exports = {
             console.log(error)
             return res.status(404).json(error)
         }
+    },
+    getPoints: async (req, res) => {
+        const db = new crud
+        const { typeId } = req.body
+        let points = await db.where('typeId', '=', typeId).get('t_pointcheck')
+        const checkMethods = await db.get('t_checkmethod')
+
+        points = await Promise.all(points.map(point => {
+            point.methods = checkMethods.filter(method => method.pointCheckId == point.checkId)
+            return point
+        }))
+
+        return res.status(200).json(points)
     }
 }

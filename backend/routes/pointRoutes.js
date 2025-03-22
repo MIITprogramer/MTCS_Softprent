@@ -9,6 +9,7 @@ router.post('/deletepoint', controller.deletePoint)
 router.post('/addmethod', controller.addMethod)
 router.post('/editmethod', controller.editMethod)
 router.post('/deletemethod', controller.deleteMethod)
+router.post('/getmethods', controller.getMethods)
 
 
 module.exports = router

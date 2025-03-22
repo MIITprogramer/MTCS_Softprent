@@ -1,49 +1,56 @@
 <template>
-  <v-data-table :headers="headers" :items="data">
-    <template v-slot:item.methodes="{ item }">
-      <v-table density="compact" class="text-start ms-0">
-        <tbody>
-          <tr v-for="(i, index) in item.methodes" :key="i.methodId">
-            <td class="w-100 ps-0">{{ i.methodString }} [{{ i.typeLabel }}]</td>
-            <td class="text-no-wrap text-end">
-              <v-btn
-                flat
-                icon
-                color="transparent"
-                @click="openDialog('editMethod', i)"
-              >
-                <v-icon color="primary">mdi-pencil</v-icon>
-              </v-btn>
-              <v-btn
-                flat
-                icon
-                color="transparent"
-                @click="openDialog('deleteMethod', i)"
-              >
-                <v-icon color="error">mdi-delete</v-icon>
-              </v-btn>
-            </td>
-          </tr>
-        </tbody>
-      </v-table>
+  <v-data-table :headers="headers" :items="options">
+    <template v-slot:item.pointString="{ item }">
+      <div class="text-no-wrap">
+        {{ item.pointString }}
+      </div>
+    </template>
+    <template v-slot:item.methods="{ item }">
+      <div class="text-no-wrap">
+        <v-btn
+          @click="openDialog('manageMethods', item)"
+          variant="outlined"
+          rounded="pill"
+          density="compact"
+          prepend-icon="mdi-information-outline"
+        >
+          Check Methods
+        </v-btn>
+      </div>
     </template>
     <template v-slot:item.checkId="{ item }">
       <v-btn
         flat
         icon
         color="transparent"
-        @click="openDialog('editOption', item)"
+        @click="openDialog('editPoint', item)"
       >
         <v-icon color="primary">mdi-pencil</v-icon>
       </v-btn>
       <v-btn
+        @click="openDialog('deletePoint', item)"
         flat
         icon
         color="transparent"
-        @click="openDialog('deletePoint', item)"
       >
         <v-icon color="error">mdi-delete</v-icon>
       </v-btn>
+    </template>
+    <template v-slot:top>
+      <v-row>
+        <v-col cols="3" offset="9">
+          <v-btn
+            @click="openDialog('addPoint')"
+            prepend-icon="mdi-plus"
+            variant="outlined"
+            rounded="pill"
+            block
+            color="primary"
+            dark
+            >Add Point Check</v-btn
+          >
+        </v-col>
+      </v-row>
     </template>
   </v-data-table>
   <v-dialog
@@ -51,77 +58,133 @@
     scrollable
     persistent
     :overlay="false"
-    max-width="500px"
+    :max-width="buttonAction == 'manageMethods' ? '' : '500px'"
     transition="dialog-transition"
   >
-    <EditMethod :method="selected" :close-dialog="editMethod"></EditMethod>
+    <AddPoint
+      :type-id="typeId"
+      :closeDialog="closeDialog"
+      v-if="buttonAction == 'addPoint'"
+    />
+    <EditPoint
+      v-if="buttonAction == 'editPoint'"
+      :point="selectedItem"
+      :close-dialog="closeDialog"
+    />
+    <v-card
+      rounded="xl"
+      v-if="buttonAction == 'deletePoint'"
+      :title="`You are going to delete ${selectedItem.pointString}.`"
+      subtitle="Please confirm your action."
+    >
+      <template v-slot:prepend>
+        <v-icon size="50" color="warning">mdi-help</v-icon>
+      </template>
+      <v-card-text>
+        <v-divider class="mb-3"></v-divider>
+        <v-row>
+          <v-col cols="6">
+            <v-btn
+              block
+              variant="outlined"
+              rounded="pill"
+              prepend-icon="mdi-arrow-u-left-bottom"
+              @click="closeDialog"
+              >cancel</v-btn
+            >
+          </v-col>
+          <v-col cols="6">
+            <v-btn
+              block
+              variant="outlined"
+              rounded="pill"
+              color="error"
+              prepend-icon="mdi-delete"
+              @click="deletePoint"
+              >Delete</v-btn
+            >
+          </v-col>
+        </v-row>
+      </v-card-text>
+    </v-card>
+    <MethodManager
+      v-if="buttonAction == 'manageMethods'"
+      :point-methods="selectedItem"
+      :close-dialog="closeDialog"
+    />
   </v-dialog>
 </template>
 <script setup>
-import { nextTick, ref } from "vue";
-import EditMethod from "../forms/editMethod.vue";
-import { useAppStore } from "@/store/app";
+import { nextTick, onBeforeMount, ref } from "vue";
+import AddPoint from "../forms/addPoint.vue";
 
-const props = defineProps(["type"]);
-const data = ref(props.type);
-const action = ref(null);
-const selected = ref(null);
+import { useAppStore } from "@/store/app";
+import EditPoint from "../forms/editPoint.vue";
+import MethodManager from "./methodManager.vue";
+
+const props = defineProps(["typeOptions"]);
+
+const buttonAction = ref(null);
+const selectedItem = ref(null);
 const dialog = ref(false);
+const store = useAppStore();
+const typeId = props.typeOptions.typeId;
+const options = ref([]);
 const headers = [
   {
-    title: "Point Check",
     key: "pointString",
+    title: "Point Check",
     align: "start",
   },
-
   {
-    title: "Check Methods",
-    key: "methodes",
-    align: "start",
+    key: "methods",
+    title: "Open Methods",
+    align: "center",
     sortable: false,
   },
-
   {
-    title: "Actions",
     key: "checkId",
+    title: "Actions",
     align: "center",
     sortable: false,
   },
 ];
-const store = useAppStore();
-const alert = store.alert;
 
-const openDialog = (act, item) => {
-  action.value = act;
-  if (item) {
-    selected.value = item;
+const refreshoptions = async () => {
+  options.value = await store.ajax({ typeId }, "type/getpoints", "post");
+};
+
+const openDialog = async (action, item) => {
+  console.log(item);
+  if (item != undefined) {
+    selectedItem.value = item;
   }
+  buttonAction.value = action;
+  await nextTick();
   dialog.value = true;
 };
 
-const editMethod = async (fd) => {
-  if (fd) {
-    try {
-      await store.ajax(fd, "point/editmethod", "post");
-      const types = await store.ajax({}, "type", "post");
-
-      const type = types.find((e) => e.typeId == props.type[0].typeId);
-      data.value = type.points;
-
-      console.log(data.value);
-
-      alert.fire({
-        title: "Method Edited",
-        text: "Method edited successfully.",
-        icon: "success",
-        timer: 3000,
-      });
-    } catch (error) {
-      console.log(error);
-      alert.fire(error);
-      return;
-    }
-  }
+const closeDialog = () => {
+  refreshoptions();
   dialog.value = false;
 };
+
+const deletePoint = async () => {
+  await store.ajax(
+    { checkId: selectedItem.value.checkId },
+    "point/deletePoint",
+    "post"
+  );
+  store.alert.fire({
+    title: "Point Deleted",
+    text: "Point deleted successfully!",
+    icon: "success",
+    timer: 3000,
+  });
+  closeDialog();
+};
+
+onBeforeMount(() => {
+  refreshoptions();
+});
 </script>
