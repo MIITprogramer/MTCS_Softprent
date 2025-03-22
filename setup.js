@@ -4,8 +4,6 @@ const readline = require("readline");
 const { execSync } = require("child_process");
 const os = require("os");
 
-const isWindows = os.platform() === "win32";
-
 // Fungsi untuk membaca input dari user
 const rl = readline.createInterface({
     input: process.stdin,
@@ -27,8 +25,16 @@ async function main() {
     const LOCAL_PORT = await askQuestion("Masukkan LOCAL_PORT: ");
     const SQL_PATH = await askQuestion("Masukkan path SQL: ");
 
+    const osType = await askQuestion("Pilih sistem operasi (1: Windows, 2: Linux): ");
+    let mysqlCommand = "";
 
-    const mysqlCommand = isWindows ? path.join(SQL_PATH, "mysql.exe") : path.join(SQL_PATH, "mysql");
+    if (osType === "1") {
+        mysqlCommand = "mysql.exe";
+    } else {
+        mysqlCommand = "mysql";
+    }
+
+
 
     rl.close();
 
@@ -176,9 +182,6 @@ pm2 resurrect
 
     function checkDatabaseExists(DB_HOST, DB_USER, DB_PASS, SQL_PATH) {
         try {
-            console.log("🔍 Mengecek apakah database sudah ada...");
-
-            const mysqlCommand = isWindows ? path.join(SQL_PATH, "mysql.exe") : path.join(SQL_PATH, "mysql");
             const mysqlPath = path.join(SQL_PATH, mysqlCommand);
             const checkCommand = `"${mysqlPath}" -h ${DB_HOST} -u ${DB_USER} ${DB_PASS ? `-p${DB_PASS}` : ""} -e "USE mtcs_softpren;"`;
             execSync(checkCommand, { stdio: "inherit", shell: true });
