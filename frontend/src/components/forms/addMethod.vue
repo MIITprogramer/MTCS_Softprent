@@ -1,6 +1,6 @@
 <template>
   <v-card
-    title="Edit Check Method"
+    title="Add New Check Method"
     rounded="xl"
     subtitle="Please provide your method informations"
   >
@@ -14,7 +14,7 @@
     </template>
     <v-card-text>
       <v-divider class="mb-3"></v-divider>
-      <v-text-field
+      <v-textarea
         variant="outlined"
         rounded="pill"
         label="Check Method"
@@ -40,7 +40,7 @@
         block
         color="primary"
         dark
-        >Edit</v-btn
+        >Add</v-btn
       >
     </v-card-text>
   </v-card>
@@ -49,17 +49,16 @@
 import { useAppStore } from "@/store/app";
 import useVuelidate from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
-import { onBeforeMount, reactive, ref, watch } from "vue";
+import { nextTick, onBeforeMount, reactive, ref, watch } from "vue";
 
 const store = useAppStore();
 const resultTypes = ref([]);
 const alert = store.alert;
-const props = defineProps(["closeDialog", "method"]);
+const props = defineProps(["closeDialog"]);
 const formData = reactive({
-  methodString: props.method.methodString,
-  resultType: props.method.resultType,
-  pointCheckId: props.method.pointCheckId,
-  methodId: props.method.methodId,
+  methodString: "",
+  resultType: "",
+  typeLabel: "",
 });
 
 watch(
@@ -90,12 +89,6 @@ const submit = async () => {
       };
     }
     props.closeDialog(formData);
-    alert.fire({
-      title: "Method Edited",
-      text: "Method edited successfully.",
-      icon: "success",
-      timer: 3000,
-    });
   } catch (error) {
     console.log(error);
     alert.fire(error);

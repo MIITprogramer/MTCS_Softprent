@@ -53,15 +53,6 @@
       "
       v-if="config == 'typeManager'"
     />
-
-    <PointManager
-      :close-dialog="
-        () => {
-          configDialog = false;
-        }
-      "
-      v-if="config == 'pointManager'"
-    />
   </v-dialog>
 </template>
 <script setup>
@@ -70,8 +61,6 @@ import RoleManager from "../dialogs/roleManager.vue";
 import UserManager from "../dialogs/userManager.vue";
 import RankManager from "../dialogs/rankManager.vue";
 import TypeManager from "../dialogs/typeManager.vue";
-import PointManager from "../dialogs/pointManager.vue";
-
 const configDialog = ref(false);
 const config = ref(null);
 const configs = [
@@ -92,12 +81,6 @@ const configs = [
     subtitle: "Setting up ranks.",
     icon: "mdi-chevron-triple-up",
     key: "rankManager",
-  },
-  {
-    label: "POINT CHECK SETUP",
-    subtitle: "Setting up point check.",
-    icon: "mdi-checkbox-marked-outline",
-    key: "pointManager",
   },
   {
     label: "TOOL TYPE SETUP",

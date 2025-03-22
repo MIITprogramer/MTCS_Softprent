@@ -37,7 +37,6 @@
   </v-card>
 </template>
 <script setup>
-import router from "@/router";
 import { useAppStore } from "@/store/app";
 import useVuelidate from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";

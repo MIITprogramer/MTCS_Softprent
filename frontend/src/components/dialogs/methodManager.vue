@@ -51,9 +51,9 @@
 </template>
 <script setup>
 import { nextTick, ref } from "vue";
-import AddMethode from "../forms/addMethode.vue";
+import AddMethode from "../forms/addMethod.vue";
 import { useAppStore } from "@/store/app";
-import EditMethode from "../forms/editMethode.vue";
+import EditMethode from "../forms/editMethod.vue";
 
 let props = defineProps(["point"]);
 const methods = ref(props.point.methodes);

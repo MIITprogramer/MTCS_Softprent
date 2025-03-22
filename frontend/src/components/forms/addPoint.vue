@@ -5,10 +5,10 @@
     subtitle="Please provide your point informations"
   >
     <template v-slot:prepend>
-      <v-icon size="50">mdi-checkbox-marked-outline</v-icon>
+      <v-icon size="50">mdi-checkbox-outline</v-icon>
     </template>
     <template v-slot:append>
-      <v-btn @click="closeDialog" flat icon>
+      <v-btn @click="addPoint(null)" flat icon>
         <v-icon>mdi-close</v-icon>
       </v-btn>
     </template>
@@ -17,45 +17,51 @@
       <v-text-field
         variant="outlined"
         rounded="pill"
-        label="Point Check"
+        label="Point Check Name"
         v-model="formData.pointString"
-        hint="Please insert a type name."
+        hint="Please insert a name."
         class="mb-3"
         :error-messages="validator.pointString.$errors.map((e) => e.$message)"
       />
-      <v-select
-        :error-messages="validator.rankId.$errors.map((e) => e.$message)"
-        :items="ranks"
-        variant="outlined"
-        rounded="pill"
-        label="Select Rank"
-        item-title="rankName"
-        item-value="rankId"
-        v-model="formData.rankId"
-      />
-      <v-divider class="mb-3"></v-divider>
       <v-data-table
-        class="text-uppercase"
-        :headers="methodHeader"
+        :headers="methodHeaders"
+        :items="formData.checkMethods"
         hide-default-footer
-        :items="formData.methodes"
+        no-data-text="No point check available"
       >
         <template v-slot:top>
-          <div class="text-end w-100">
-            <v-btn
-              flat
-              color="primary"
-              variant="outlined"
-              rounded="pill"
-              prepend-icon="mdi-plus"
-              @click="addMethodeDialog = true"
-            >
-              add method
-            </v-btn>
-          </div>
+          <v-row>
+            <v-col cols="9">
+              <v-divider class="mx-5">
+                <h1 class="text-h6">CHECK METHOD LIST</h1></v-divider
+              >
+            </v-col>
+            <v-col cols="3">
+              <v-btn
+                block
+                variant="outlined"
+                rounded="pill"
+                dark
+                prepend-icon="mdi-plus"
+                density="compact"
+                @click="openDialog('addMethod')"
+              >
+                Method
+              </v-btn>
+            </v-col>
+          </v-row>
         </template>
         <template v-slot:item.key="{ item }">
-          <v-btn @click="removeMethode(item.key)" flat icon color="transparent">
+          <v-btn
+            @click="openDialog('editMethod', item)"
+            flat
+            icon
+            color="transparent"
+          >
+            <v-icon color="primary">mdi-pencil</v-icon>
+          </v-btn>
+
+          <v-btn @click="deleteMethod(item.key)" flat icon color="transparent">
             <v-icon color="error">mdi-delete</v-icon>
           </v-btn>
         </template>
@@ -68,47 +74,50 @@
         block
         color="primary"
         dark
-        >Add Point chek</v-btn
+        >Add</v-btn
       >
     </v-card-text>
   </v-card>
   <v-dialog
-    v-model="addMethodeDialog"
+    v-model="dialog"
     scrollable
     persistent
     :overlay="false"
-    max-width="500px"
     transition="dialog-transition"
   >
-    <AddMethode :close-dialog="addingMethod"></AddMethode>
+    <AddMethod v-if="action == 'addMethod'" :close-dialog="addMethod" />
+    <EditMethod
+      v-if="action == 'editMethod'"
+      :close-dialog="addMethod"
+      :method="selected"
+    />
   </v-dialog>
 </template>
 <script setup>
 import { useAppStore } from "@/store/app";
 import useVuelidate from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
-import { onBeforeMount, reactive, ref } from "vue";
-import AddMethode from "./addMethode.vue";
+import { nextTick, reactive, ref } from "vue";
+import AddMethod from "./addMethod.vue";
+import EditMethod from "./editMethod.vue";
+
+const selected = ref(null);
+const props = defineProps(["addPoint"]);
+const action = ref(null);
+const dialog = ref(false);
 const store = useAppStore();
-const ranks = ref([]);
 const alert = store.alert;
-const props = defineProps(["closeDialog"]);
 const formData = reactive({
   pointString: "",
-  rankId: "",
-  methodes: [],
+  checkMethods: [],
 });
 const rules = {
   pointString: {
-    required: helpers.withMessage("Point check is required", required),
-  },
-  rankId: {
-    required: helpers.withMessage("Please select a rank", required),
+    required: helpers.withMessage("Poin check is required", required),
   },
 };
-const validator = useVuelidate(rules, formData);
-const addMethodeDialog = ref(false);
-const methodHeader = [
+
+const methodHeaders = [
   {
     title: "Check Method",
     key: "methodString",
@@ -120,16 +129,19 @@ const methodHeader = [
     align: "start",
   },
   {
-    title: "Remove",
+    title: "Actions",
     key: "key",
     align: "center",
     sortable: false,
   },
 ];
+
+const validator = useVuelidate(rules, formData);
+
 const submit = async () => {
   try {
     const valid = await validator.value.$validate();
-    const xvalid = valid && formData.methodes.length > 0;
+    const xvalid = formData.checkMethods.length > 0;
     if (!valid) {
       throw {
         title: "Invalid input",
@@ -139,60 +151,97 @@ const submit = async () => {
       };
     } else if (!xvalid) {
       throw {
-        title: "Empty method",
-        text: "Please add at least a method!",
+        title: "Empty Check Method",
+        text: "A point check needed at least one check method!",
         icon: "error",
         timer: 3000,
       };
     }
-    await store.ajax(formData, "point/addpoint", "post");
-    alert.fire({
-      title: "Point Added",
-      text: "Point added successfully.",
-      icon: "success",
-      timer: 3000,
-    });
-    props.closeDialog();
+
+    await nextTick();
+    props.addPoint(formData);
   } catch (error) {
     console.log(error);
     alert.fire(error);
   }
 };
-const refreshRank = async () => {
-  ranks.value = await store.ajax({}, "ranks", "post");
+const openDialog = async (key, item) => {
+  if (item) {
+    selected.value = item;
+  }
+  action.value = key;
+  await nextTick();
+  dialog.value = true;
 };
 
-onBeforeMount(() => {
-  refreshRank();
-});
+const deleteMethod = (key) => {
+  formData.checkMethods = formData.checkMethods.filter((m) => m.key != key);
+};
 
-const addingMethod = async (item) => {
+const addMethod = async (method) => {
   try {
-    if (item) {
-      const d = formData.methodes.find(
-        (method) =>
-          method.methodString.toLowerCase() ==
-            item.methodString.toLowerCase() &&
-          item.resultType == method.resultType
-      );
-      if (d) {
-        throw {
-          title: "duplicate method",
-          text: "Method is already added",
-          icon: "error",
+    if (method) {
+      if (!method.key) {
+        const l = formData.checkMethods.length;
+        method.key = l + 1;
+
+        let isDuplicate = formData.checkMethods.some(
+          (m) =>
+            m.methodString === method.methodString &&
+            m.resultType === method.resultType
+        );
+
+        if (isDuplicate) {
+          throw {
+            title: "Duplicate Method",
+            text: "New method is already in the list",
+            icon: "error",
+            timer: 3000,
+          };
+        }
+
+        formData.checkMethods.push(method);
+        await nextTick();
+        dialog.value = false;
+        alert.fire({
+          title: "Method Added",
+          text: "Method added successfully.",
+          icon: "success",
           timer: 3000,
-        };
+        });
+      } else {
+        selected.value = null;
+        console.log(method);
+        let isDuplicate = formData.checkMethods.some(
+          (m) =>
+            m.methodString === method.methodString &&
+            m.resultType === method.resultType &&
+            m.key != method.key
+        );
+
+        if (isDuplicate) {
+          throw {
+            title: "Duplicate Method",
+            text: "New method is already in the list",
+            icon: "error",
+            timer: 3000,
+          };
+        }
+
+        const index = formData.checkMethods.findIndex(
+          (e) => e.key == method.key
+        );
+        formData.checkMethods[index] = method;
+        await nextTick();
+        dialog.value = false;
       }
-      item.key = formData.methodes.length + 1;
-      formData.methodes.push(item);
+    } else {
+      await nextTick();
+      dialog.value = false;
     }
-    addMethodeDialog.value = false;
   } catch (error) {
+    console.log(error);
     alert.fire(error);
   }
-};
-
-const removeMethode = (id) => {
-  formData.methodes = formData.methodes.filter((e) => e.key != id);
 };
 </script>

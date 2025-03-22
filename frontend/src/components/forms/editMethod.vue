@@ -1,6 +1,6 @@
 <template>
   <v-card
-    title="Add New Check Method"
+    title="Edit Check Method"
     rounded="xl"
     subtitle="Please provide your method informations"
   >
@@ -14,9 +14,9 @@
     </template>
     <v-card-text>
       <v-divider class="mb-3"></v-divider>
-      <v-text-field
+      <v-textarea
         variant="outlined"
-        rounded="pill"
+        rounded="xl"
         label="Check Method"
         v-model="formData.methodString"
         hint="Please insert a check method."
@@ -40,7 +40,7 @@
         block
         color="primary"
         dark
-        >Add</v-btn
+        >Edit</v-btn
       >
     </v-card-text>
   </v-card>
@@ -54,11 +54,13 @@ import { onBeforeMount, reactive, ref, watch } from "vue";
 const store = useAppStore();
 const resultTypes = ref([]);
 const alert = store.alert;
-const props = defineProps(["closeDialog"]);
+const props = defineProps(["closeDialog", "method"]);
 const formData = reactive({
-  methodString: "",
-  resultType: "",
-  typeLabel: "",
+  methodString: props.method.methodString,
+  resultType: props.method.resultType,
+  typeLabel: props.method.typeLabel,
+  methodId: props.method.methodId,
+  pointCheckId: props.method.pointCheckId,
 });
 
 watch(
@@ -89,12 +91,6 @@ const submit = async () => {
       };
     }
     props.closeDialog(formData);
-    alert.fire({
-      title: "Method Added",
-      text: "Method added successfully.",
-      icon: "success",
-      timer: 3000,
-    });
   } catch (error) {
     console.log(error);
     alert.fire(error);

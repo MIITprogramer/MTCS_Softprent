@@ -30,7 +30,21 @@ module.exports = {
         try {
             const db = new crud
 
-            const types = await db.get('t_tooltype')
+            let types = await db.get('t_tooltype')
+            let points = await db.get('t_pointcheck')
+            db.join('left', 'resulttype', 'resulttype.typeId', 't_checkmethod.resultType')
+            const checkMethods = await db.get('t_checkmethod')
+
+            points = await Promise.all(points.map(point => {
+                point.methodes = checkMethods.filter(method => method.pointCheckId === point.checkId)
+                return point
+            }))
+
+            types = await Promise.all(types.map(type => {
+                type.points = points.filter(point => point.typeId == type.typeId);
+                return type
+            }))
+
             return res.status(200).json(types)
         } catch (error) {
 
@@ -82,5 +96,5 @@ module.exports = {
             console.log(error)
             return res.status(404).json(error)
         }
-    },
+    }
 }

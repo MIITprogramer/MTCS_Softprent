@@ -99,13 +99,22 @@ module.exports = {
             return res.status(404).json(error)
         }
     },
-
-
     editMethod: async (req, res) => {
         try {
+            const {
+                methodString,
+                resultType,
+                typeLabel,
+                methodId,
+                pointCheckId,
+            } = req.body
+
             const db = new crud
-            const { methodId, pointCheckId, methodString, resultType } = req.body
-            const duplicate = await db.where('methodId', '=', methodId).where('pointCheckId', '=', pointCheckId).where('methodString', '=', methodString).get('t_checkmethod')
+            const duplicate = await db.where('methodId', '!=', methodId)
+                .where('methodString', '=', methodString)
+                .where('resultType', '=', resultType)
+                .where('pointCheckId', '=', pointCheckId)
+                .get('t_checkmethod')
 
             if (duplicate.length > 0) {
                 throw {
@@ -115,12 +124,16 @@ module.exports = {
                     timer: 3000,
                 }
             }
-            db.where('methodId', '=', methodId)
-            const added = await db.update('t_checkmethod', { methodString, resultType })
 
-            return res.status(200).json(added);
+            await db.where('methodId', '=', methodId)
+                .update('t_checkmethod', {
+                    methodString,
+                    resultType,
+                })
 
+            return res.status(200).json({ response: 'success' })
         } catch (error) {
+
             console.log(error)
             return res.status(404).json(error)
         }

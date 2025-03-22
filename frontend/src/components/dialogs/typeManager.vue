@@ -60,6 +60,16 @@
             <v-icon color="error">mdi-delete</v-icon>
           </v-btn>
         </template>
+        <template v-slot:item.points="{ item }">
+          <v-btn
+            variant="outlined"
+            prepend-icon="mdi-information-outline"
+            rounded="pill"
+            @click="openDialog('managePoints', item.points)"
+          >
+            detail
+          </v-btn>
+        </template>
       </v-data-table>
     </v-card-text>
   </v-card>
@@ -68,9 +78,22 @@
     scrollable
     persistent
     :overlay="false"
-    max-width="700px"
     transition="dialog-transition"
   >
+    <v-card
+      title="Points Detail"
+      rounded="xl"
+      v-if="selectedDialog == 'managePoints'"
+    >
+      <template v-slot:append>
+        <v-btn flat icon color="transparent" @click="closeMyDialog">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </template>
+      <v-card-text>
+        <PointManager :type="selectedItem"></PointManager>
+      </v-card-text>
+    </v-card>
     <AddType :close-dialog="closeMyDialog" v-if="selectedDialog == 'addType'" />
     <EditType
       :selected-item="selectedItem"
@@ -121,6 +144,7 @@ import { onMounted, ref } from "vue";
 import { useAppStore } from "@/store/app";
 import AddType from "../forms/addType.vue";
 import EditType from "../forms/editType.vue";
+import PointManager from "./pointManager.vue";
 
 const store = useAppStore();
 const alert = store.alert;
@@ -136,7 +160,12 @@ const headers = [
     key: "typeName",
     align: "start",
   },
-
+  {
+    title: "Point Check",
+    key: "points",
+    align: "center",
+    sortable: false,
+  },
   {
     title: "Actions",
     key: "typeId",
