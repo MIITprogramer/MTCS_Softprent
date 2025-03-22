@@ -85,6 +85,7 @@ const formData = reactive({
   rankName: props.selectedItem.rankName,
   description: props.selectedItem.description,
   collumns: [],
+  rankNameJp: props.selectedItem.rankNameJp,
 });
 
 console.log(formData);
@@ -92,6 +93,11 @@ console.log(formData);
 const formStructure = reactive({
   rankName: {
     label: "Rank Name",
+    hint: "Please enter a rank name.",
+    type: "text",
+  },
+  rankNameJp: {
+    label: "Rank Name Japanese",
     hint: "Please enter a rank name.",
     type: "text",
   },
@@ -104,6 +110,9 @@ const formStructure = reactive({
 
 const rules = {
   rankName: {
+    required: helpers.withMessage("Rank name is required", required),
+  },
+  rankNameJp: {
     required: helpers.withMessage("Rank name is required", required),
   },
   description: {

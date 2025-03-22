@@ -82,6 +82,7 @@ const collumns = ref([]);
 
 const formData = reactive({
   rankName: "",
+  rankNameJp: "",
   description: "",
   collumns: [],
 });
@@ -89,6 +90,11 @@ const formData = reactive({
 const formStructure = reactive({
   rankName: {
     label: "Rank Name",
+    hint: "Please enter a rank name.",
+    type: "text",
+  },
+  rankNameJp: {
+    label: "Rank Name Japanese",
     hint: "Please enter a rank name.",
     type: "text",
   },
@@ -101,6 +107,9 @@ const formStructure = reactive({
 
 const rules = {
   rankName: {
+    required: helpers.withMessage("Rank name is required", required),
+  },
+  rankNameJp: {
     required: helpers.withMessage("Rank name is required", required),
   },
   description: {

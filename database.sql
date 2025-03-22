@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 22 Mar 2025 pada 13.07
+-- Waktu pembuatan: 22 Mar 2025 pada 21.32
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.0.30
 
@@ -56,9 +56,27 @@ INSERT INTO `resulttype` (`typeId`, `typeLabel`, `typeDesc`) VALUES
 CREATE TABLE `tooldata` (
   `dataId` int(11) NOT NULL,
   `columId` int(11) NOT NULL,
-  `dataValue` varchar(255) NOT NULL,
+  `dataValue` varchar(255) DEFAULT NULL,
   `toolId` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `tooldata`
+--
+
+INSERT INTO `tooldata` (`dataId`, `columId`, `dataValue`, `toolId`) VALUES
+(1, 2, '0-150mm', 4),
+(2, 12, '2025-10-16', 4),
+(4, 6, '2017-11-04', 4),
+(5, 5, 'B17058947', 4),
+(6, 10, 'PT. Sentral Tehnologi Managemen', 4),
+(7, 7, 'Mitutoyo', 4),
+(8, 11, '2024-10-25', 4),
+(9, 3, '0.01mm', 4),
+(10, 9, 'External 1/Year', 4),
+(11, 4, '0,05 mm', 4),
+(12, 8, 'Inspection', 4),
+(33, 13, NULL, 4);
 
 -- --------------------------------------------------------
 
@@ -98,26 +116,27 @@ CREATE TABLE `t_collumns` (
   `collumnId` int(11) NOT NULL,
   `collumnEnString` varchar(255) NOT NULL,
   `columnJpString` varchar(255) NOT NULL,
-  `isDefault` int(11) NOT NULL
+  `isDefault` int(11) NOT NULL,
+  `dataType` varchar(255) NOT NULL DEFAULT 'text'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data untuk tabel `t_collumns`
 --
 
-INSERT INTO `t_collumns` (`collumnId`, `collumnEnString`, `columnJpString`, `isDefault`) VALUES
-(2, 'Range of\r\nMeasurement', '測定範囲', 1),
-(3, 'Resolution', '最小表示量', 1),
-(4, 'Calibration　Standard Accuracy (±）', '校正規格精度 (±）', 1),
-(5, 'Serial No.', 'メーカー製造No．', 1),
-(6, 'Registration Date', '登録日', 1),
-(7, 'Maker', '製造者名', 1),
-(8, 'Place', '場所', 1),
-(9, 'Calibration Interval', '校正間隔', 0),
-(10, 'Calibrated by', '作業許容精度', 0),
-(11, 'Last\r\nCalibration', '最終校正日', 0),
-(12, 'Next Calibration Plan', '次回の校正計画', 0),
-(13, 'Actual Date Calibration', '実際の校正日', 0);
+INSERT INTO `t_collumns` (`collumnId`, `collumnEnString`, `columnJpString`, `isDefault`, `dataType`) VALUES
+(2, 'Range of\r\nMeasurement', '測定範囲', 1, 'text'),
+(3, 'Resolution', '最小表示量', 1, 'text'),
+(4, 'Calibration　Standard Accuracy (±）', '校正規格精度 (±）', 1, 'text'),
+(5, 'Serial No.', 'メーカー製造No．', 1, 'text'),
+(6, 'Registration Date', '登録日', 1, 'date'),
+(7, 'Maker', '製造者名', 1, 'text'),
+(8, 'Place', '場所', 1, 'text'),
+(9, 'Calibration Interval', '校正間隔', 0, 'text'),
+(10, 'Calibrated by', '作業許容精度', 0, 'text'),
+(11, 'Last\r\nCalibration', '最終校正日', 0, 'date'),
+(12, 'Next Calibration Plan', '次回の校正計画', 0, 'date'),
+(13, 'Actual Date Calibration', '実際の校正日', 0, 'date');
 
 -- --------------------------------------------------------
 
@@ -154,17 +173,18 @@ CREATE TABLE `t_rank` (
   `rankId` int(11) NOT NULL,
   `rankName` varchar(255) NOT NULL,
   `description` varchar(1024) NOT NULL,
-  `collumns` varchar(1024) NOT NULL
+  `collumns` varchar(1024) NOT NULL,
+  `rankNameJp` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data untuk tabel `t_rank`
 --
 
-INSERT INTO `t_rank` (`rankId`, `rankName`, `description`, `collumns`) VALUES
-(14, 'RANK A', 'Rank A Inspection Tool have to be done External Calibration at least once in a year.', '[\"2\",\"3\",\"4\",\"5\",\"6\",\"7\",\"8\",\"9\",\"10\",\"11\",\"12\",\"13\"]'),
-(15, 'RANK B', 'Rank B Inspection Tool have to be done External Calibration at least once in a year or more.', '[\"2\",\"3\",\"4\",\"5\",\"6\",\"7\",\"8\",\"9\",\"10\",\"11\",\"12\",\"13\"]'),
-(16, 'RANK C', 'Rank C Inspection Tool does not have to be done Calibration.', '[\"2\",\"3\",\"4\",\"5\",\"6\",\"7\",\"8\",\"9\"]');
+INSERT INTO `t_rank` (`rankId`, `rankName`, `description`, `collumns`, `rankNameJp`) VALUES
+(14, 'RANK A', 'Rank A Inspection Tool have to be done External Calibration at least once in a year.', '[\"2\",\"3\",\"4\",\"5\",\"6\",\"7\",\"8\",\"9\",\"10\",\"11\",\"12\",\"13\"]', 'Aランク'),
+(15, 'RANK B', 'Rank B Inspection Tool have to be done External Calibration at least once in a year or more.', '[\"2\",\"3\",\"4\",\"5\",\"6\",\"7\",\"8\",\"9\",\"10\",\"11\",\"12\",\"13\"]', 'Bランク'),
+(16, 'RANK C', 'Rank C Inspection Tool does not have to be done Calibration.', '[\"2\",\"3\",\"4\",\"5\",\"6\",\"7\",\"8\",\"9\"]', 'Cランク');
 
 -- --------------------------------------------------------
 
@@ -205,7 +225,7 @@ CREATE TABLE `t_tools` (
 --
 
 INSERT INTO `t_tools` (`toolId`, `toolName`, `typeId`, `rankId`, `disposed`, `registerNumber`) VALUES
-(4, 'Digital Caliper', 16, 14, 0, '');
+(4, 'Digital Caliper', 16, 14, 0, 'CAL-001');
 
 -- --------------------------------------------------------
 
@@ -264,6 +284,7 @@ ALTER TABLE `resulttype`
 --
 ALTER TABLE `tooldata`
   ADD PRIMARY KEY (`dataId`),
+  ADD UNIQUE KEY `unique_tool_column` (`toolId`,`columId`),
   ADD KEY `fk_tools_data` (`toolId`);
 
 --
@@ -334,7 +355,7 @@ ALTER TABLE `resulttype`
 -- AUTO_INCREMENT untuk tabel `tooldata`
 --
 ALTER TABLE `tooldata`
-  MODIFY `dataId` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `dataId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=46;
 
 --
 -- AUTO_INCREMENT untuk tabel `t_checkmethod`

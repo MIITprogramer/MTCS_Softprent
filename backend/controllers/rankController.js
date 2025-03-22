@@ -10,7 +10,7 @@ module.exports = {
     addRank: async (req, res) => {
         try {
             const db = new crud
-            const { rankName, description, collumns } = req.body
+            const { rankName, description, collumns, rankNameJp } = req.body
             const duplicate = await db.where('rankName', '=', rankName).get('t_rank')
 
             if (duplicate.length > 0) {
@@ -22,7 +22,7 @@ module.exports = {
                 }
             }
 
-            await db.insert('t_rank', { rankName, description, collumns: JSON.stringify(collumns) })
+            await db.insert('t_rank', { rankName, description, collumns: JSON.stringify(collumns), rankNameJp })
 
             return res.status(200).json({ message: 'success' })
 
@@ -40,7 +40,7 @@ module.exports = {
     editRank: async (req, res) => {
         try {
             const db = new crud
-            const { rankName, description, rankId, collumns } = req.body
+            const { rankName, description, rankId, collumns, rankNameJp } = req.body
             const duplicate = await db.where('rankName', '=', rankName).where('rankId', '!=', rankId).get('t_rank')
 
             if (duplicate.length > 0) {
@@ -52,7 +52,7 @@ module.exports = {
                 }
             }
 
-            await db.where('rankId', '=', rankId).update('t_rank', { rankName, description, collumns: JSON.stringify(collumns) })
+            await db.where('rankId', '=', rankId).update('t_rank', { rankName, description, collumns: JSON.stringify(collumns), rankNameJp })
 
             return res.status(200).json({ message: 'success' })
         } catch (error) {

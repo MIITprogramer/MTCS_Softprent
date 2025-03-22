@@ -13,6 +13,9 @@
         :items="ranks"
         :headers="headers"
       >
+        <template v-slot:item.rankName="{ item }">
+          {{ item.rankName }} || {{ item.rankNameJp }}
+        </template>
         <template v-slot:top>
           <v-row>
             <v-col cols="10">
