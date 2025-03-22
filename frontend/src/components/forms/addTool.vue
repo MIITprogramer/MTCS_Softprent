@@ -26,6 +26,20 @@
       >
       </v-text-field>
 
+      <v-text-field
+        type="text"
+        variant="outlined"
+        rounded="pill"
+        label="Register Number"
+        v-model="formData.registerNumber"
+        hint="Please insert the tool name"
+        class="mb-3"
+        :error-messages="
+          validator.registerNumber.$errors.map((e) => e.$message)
+        "
+      >
+      </v-text-field>
+
       <v-select
         variant="outlined"
         rounded="pill"
@@ -79,6 +93,7 @@ const formData = reactive({
   toolName: "",
   rankId: "",
   typeId: "",
+  registerNumber: "",
 });
 
 const rules = {
@@ -90,6 +105,10 @@ const rules = {
   },
   typeId: {
     required: helpers.withMessage("Please select a type", required),
+  },
+
+  registerNumber: {
+    required: helpers.withMessage("Register number is required", required),
   },
 };
 const validator = useVuelidate(rules, formData);
