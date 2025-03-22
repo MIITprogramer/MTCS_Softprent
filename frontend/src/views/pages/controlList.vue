@@ -38,12 +38,13 @@
             </v-col>
           </v-row>
 
-          <div>
+          <div class="mt-2">
             <table
+              ref="myTable"
               class="itc_table text-no-wrap"
-              :style="`transform-origin: top left; transform: scale(${papers[paper].s})`"
+              :style="`transform-origin: top left; transform: scale(${fontScale})`"
             >
-              <thead :style="`font-size:${10 * fontScale}pt!important`">
+              <thead :style="`font-size:${10}pt!important`">
                 <tr>
                   <th>No</th>
                   <th class="borderLeft">Equipment Name <br />機器名称</th>
@@ -66,7 +67,7 @@
                   </th>
                 </tr>
               </thead>
-              <tbody :style="`font-size:${10 * fontScale}pt!important`">
+              <tbody :style="`font-size:${10}pt!important`">
                 <tr
                   class="borderLeft"
                   v-for="(item, index) in selectedTools"
@@ -85,14 +86,16 @@
                 </tr>
 
                 <tr v-for="(item, index) in empty" :key="index">
-                  <td class="text-white">""</td>
-                  <td class="text-no-wrap"></td>
-                  <td class="text-no-wrap"></td>
+                  <td class="text-white"></td>
+                  <td class="text-no-wrap text-white">""</td>
+                  <td class="text-no-wrap text-white">""</td>
                   <td
-                    class="text-center"
+                    class="text-center text-white"
                     v-for="(itm, i) in selectedCol"
                     :key="i"
-                  ></td>
+                  >
+                    ""
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -166,7 +169,7 @@
                     color="transparent"
                     @click="
                       () => {
-                        fontScale = 1;
+                        fontScale = 0.819;
                       }
                     "
                   >
@@ -187,6 +190,10 @@
                 </v-btn-group>
               </div>
               <v-select
+                hide-details=""
+                density="compact"
+                variant="outlined"
+                rounded="pill"
                 :items="fonts"
                 v-model="selectedFont"
                 label="Select Font"
@@ -233,7 +240,8 @@ import html2canvas from "html2canvas";
 import $ from "jquery";
 
 const issuedD = ref(moment(new Date()));
-const fontScale = ref(1);
+const myTable = ref(null);
+const fontScale = ref(0.819);
 const paper = ref("a3");
 const issued = ref(issuedD.value.format("YYYY-MM-DD"));
 const scale = ref(0.5);
@@ -247,6 +255,7 @@ const selectedRank = ref({});
 const selectedTools = ref([]);
 const selectedCol = ref([]);
 const printA = ref(null);
+const row = ref(32);
 const selectedFont = ref("MS PGothic");
 const fonts = ref([
   "Arial",
@@ -290,6 +299,22 @@ watch(scale, (e) => {
     fitToPage();
   }
 });
+
+watch(fontScale, () => {
+  const tab = myTable.value;
+  const trr = $(tab).find("tbody tr")[0];
+  const trH = trr.getBoundingClientRect().height; //
+  const trF = 515 / trH;
+  console.log(trF);
+
+  const { height } = tab.getBoundingClientRect();
+
+  const pers = trF.toFixed(0) * (515 / height).toFixed(0);
+  row.value = pers.toFixed(0);
+  const l = row.value - selectedTools.value.length;
+  empty.value = Array(l).fill("");
+});
+
 const setRank = (rank) => {
   selectedRank.value = rank;
   selectedCol.value = JSON.parse(rank.collumns);
@@ -298,7 +323,7 @@ const setRank = (rank) => {
   });
   selectedTools.value = tools.value.filter((e) => e.rankId == rank.rankId);
 
-  const l = 30 - selectedTools.value.length;
+  const l = row.value - selectedTools.value.length;
   empty.value = Array(l).fill("");
 };
 
@@ -342,7 +367,7 @@ watch(printA, (e) => {
   console.log(e);
 });
 
-watch(paper, async (e) => {
+watch(paper, async () => {
   if (!printA.value) return;
   // Set ukuran elemen sesuai pilihan kertas
   $(printA.value).css({
@@ -398,6 +423,7 @@ const print = async () => {
   margin: auto;
 }
 .itc_table {
+  width: 100% !important;
   border-collapse: collapse; /* Menghilangkan celah antar border */
 }
 
