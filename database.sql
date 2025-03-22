@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 19 Mar 2025 pada 22.09
+-- Waktu pembuatan: 22 Mar 2025 pada 06.30
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.0.30
 
@@ -78,7 +78,15 @@ CREATE TABLE `t_checkmethod` (
 --
 
 INSERT INTO `t_checkmethod` (`methodId`, `pointCheckId`, `methodString`, `resultType`) VALUES
-(2, 8, 'test 1', 2);
+(21, 26, 'Apakah kondisi Outside Jaws tidak berkarat ,tdk lecet , rusak?', 1),
+(22, 28, 'Apakah kondisi Depth Bar tidak berkarat & tdk lecet, rusak?', 1),
+(23, 27, 'Apakah kondisi Inside Jaws tidak berkarat & tdk lecet, rusak?', 1),
+(24, 31, 'Apakah Bagian Skala Vernier dapat digeser dengan lancar?', 1),
+(25, 30, 'Apakah jika zero origin ditekan menunjukkan angka \"0\" pada display unit?', 1),
+(26, 29, 'Apakah angka pada display unit dapat terbaca jelas?', 1),
+(27, 32, 'a. Apakah pada Digital caliper tercantum sticker tanggal kalibrasi ulang ? 3', 2),
+(28, 32, 'b. Apakah tanggal next kalibrasi pada sticker masih berlaku ?', 4),
+(29, 32, 'c. Apakah sticker kalibrasi ulang masih utuh dan dapat dibaca dengan jelas ?3', 2);
 
 -- --------------------------------------------------------
 
@@ -120,7 +128,7 @@ INSERT INTO `t_collumns` (`collumnId`, `collumnEnString`, `columnJpString`, `isD
 
 CREATE TABLE `t_pointcheck` (
   `checkId` int(11) NOT NULL,
-  `rankId` int(11) NOT NULL,
+  `typeId` int(11) NOT NULL,
   `pointString` varchar(128) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -128,8 +136,14 @@ CREATE TABLE `t_pointcheck` (
 -- Dumping data untuk tabel `t_pointcheck`
 --
 
-INSERT INTO `t_pointcheck` (`checkId`, `rankId`, `pointString`) VALUES
-(8, 1, 'test 2');
+INSERT INTO `t_pointcheck` (`checkId`, `typeId`, `pointString`) VALUES
+(26, 9, 'Outside Jaws'),
+(27, 9, 'Inside Jaws'),
+(28, 9, 'Depth Bar'),
+(29, 9, 'Display Unit'),
+(30, 9, 'Zero Origin'),
+(31, 9, 'Skala Vernier'),
+(32, 9, 'Kalibrasi');
 
 -- --------------------------------------------------------
 
@@ -149,7 +163,8 @@ CREATE TABLE `t_rank` (
 
 INSERT INTO `t_rank` (`rankId`, `rankName`, `description`) VALUES
 (1, 'Rank A', 'Rank A Inspection Tool have to be done External Calibration at least once in a year.'),
-(8, 'Rank B', 'Rank B Inspection Tool have to be done External Calibration at least once in a year or more.');
+(8, 'Rank B', 'Rank B Inspection Tool have to be done External Calibration at least once in a year or more.'),
+(10, 'rank c', 'Rank C Inspection Tool does not have to be done Calibration.');
 
 -- --------------------------------------------------------
 
@@ -193,6 +208,14 @@ CREATE TABLE `t_tooltype` (
   `typeId` int(11) NOT NULL,
   `typeName` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `t_tooltype`
+--
+
+INSERT INTO `t_tooltype` (`typeId`, `typeName`) VALUES
+(9, 'Digital Caliper'),
+(10, 'test');
 
 -- --------------------------------------------------------
 
@@ -251,7 +274,7 @@ ALTER TABLE `t_collumns`
 --
 ALTER TABLE `t_pointcheck`
   ADD PRIMARY KEY (`checkId`),
-  ADD KEY `fk_pointcheck_rank` (`rankId`);
+  ADD KEY `fk_pointcheck_rank` (`typeId`);
 
 --
 -- Indeks untuk tabel `t_rank`
@@ -303,7 +326,7 @@ ALTER TABLE `tooldata`
 -- AUTO_INCREMENT untuk tabel `t_checkmethod`
 --
 ALTER TABLE `t_checkmethod`
-  MODIFY `methodId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `methodId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 
 --
 -- AUTO_INCREMENT untuk tabel `t_collumns`
@@ -315,13 +338,13 @@ ALTER TABLE `t_collumns`
 -- AUTO_INCREMENT untuk tabel `t_pointcheck`
 --
 ALTER TABLE `t_pointcheck`
-  MODIFY `checkId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `checkId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
 
 --
 -- AUTO_INCREMENT untuk tabel `t_rank`
 --
 ALTER TABLE `t_rank`
-  MODIFY `rankId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `rankId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT untuk tabel `t_roles`
@@ -339,7 +362,7 @@ ALTER TABLE `t_tools`
 -- AUTO_INCREMENT untuk tabel `t_tooltype`
 --
 ALTER TABLE `t_tooltype`
-  MODIFY `typeId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `typeId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- Ketidakleluasaan untuk tabel pelimpahan (Dumped Tables)
@@ -355,7 +378,7 @@ ALTER TABLE `t_checkmethod`
 -- Ketidakleluasaan untuk tabel `t_pointcheck`
 --
 ALTER TABLE `t_pointcheck`
-  ADD CONSTRAINT `fk_pointcheck_rank` FOREIGN KEY (`rankId`) REFERENCES `t_rank` (`rankId`) ON DELETE CASCADE;
+  ADD CONSTRAINT `t_pointcheck_ibfk_1` FOREIGN KEY (`typeId`) REFERENCES `t_tooltype` (`typeId`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
