@@ -121,8 +121,8 @@
                 class="w-90"
                 v-model="scale"
                 step="0.01"
-                :max="paper == 'a3' ? 0.99 : 2"
-                min="0.50"
+                :max="2"
+                min="0.65"
                 hide-details=""
               >
                 <template v-slot:append>
@@ -295,7 +295,7 @@ watch(issued, (e) => {
   issuedD.value = moment(e);
 });
 watch(scale, (e) => {
-  if (e == 0.65) {
+  if (e < 0.825) {
     fitToPage();
   }
 });
@@ -339,18 +339,12 @@ onMounted(() => {
 });
 
 const fitToPage = async () => {
-  scale.value = papers[paper.value].sc;
+  scale.value = 0.65;
   const container = scroller.value;
   await nextTick();
-  if (container && paper.value == "a3") {
-    container.scrollLeft =
-      container.scrollWidth / 2 - container.clientWidth / 2;
-    container.scrollTop =
-      container.scrollHeight / 2 - container.clientHeight / 2;
-  } else {
-    container.scrollLeft =
-      container.scrollWidth / 2 - container.clientWidth / 2;
-    container.scrollTop = 0;
+  if (container) {
+    container.scrollLeft = (container.scrollWidth - container.clientWidth) / 2;
+    container.scrollTop = (container.scrollHeight - container.clientHeight) / 2;
   }
 };
 const maxScale = () => {
