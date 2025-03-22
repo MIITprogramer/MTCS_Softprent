@@ -4,8 +4,8 @@ module.exports = {
     addPoint: async (req, res) => {
         try {
             const db = new crud
-            const { typeId, pointString } = req.body
-            const duplicate = await db.where('pointString', '=', pointString).where('typeId', '=', typeId).get('t_pointcheck')
+            const { toolId, pointString } = req.body
+            const duplicate = await db.where('pointString', '=', pointString).where('toolId', '=', toolId).get('t_pointcheck')
 
             if (duplicate.length > 0) {
                 throw {
@@ -16,7 +16,7 @@ module.exports = {
                 }
             }
 
-            await db.insert('t_pointcheck', { typeId, pointString })
+            await db.insert('t_pointcheck', { toolId, pointString })
 
             return res.status(200).json({ message: 'success' });
 
@@ -48,8 +48,8 @@ module.exports = {
     editPoint: async (req, res) => {
         try {
             const db = new crud
-            const { typeId, pointString, checkId } = req.body
-            const duplicate = await db.where('pointString', '=', pointString).where('typeId', '=', typeId).where('checkId', '!=', checkId).get('t_pointcheck')
+            const { toolId, pointString, checkId } = req.body
+            const duplicate = await db.where('pointString', '=', pointString).where('toolId', '=', toolId).where('checkId', '!=', checkId).get('t_pointcheck')
 
             if (duplicate.length > 0) {
                 throw {
@@ -61,7 +61,7 @@ module.exports = {
             }
 
             db.where('checkId', '=', checkId)
-            await db.update('t_pointcheck', { typeId, pointString })
+            await db.update('t_pointcheck', { pointString })
 
             return res.status(200).json({ message: 'success' })
 

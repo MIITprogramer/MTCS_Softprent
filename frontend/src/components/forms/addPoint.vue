@@ -41,10 +41,10 @@ import useVuelidate from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
 import { reactive } from "vue";
 
-const props = defineProps(["typeId", "closeDialog"]);
+const props = defineProps(["toolId", "closeDialog"]);
 const store = useAppStore();
 const formData = reactive({
-  typeId: props.typeId,
+  toolId: props.toolId,
   pointString: "",
 });
 const rules = {

@@ -41,6 +41,21 @@
           :error-messages="validator[index].$errors.map((e) => e.$message)"
         />
       </div>
+      <v-divider class="text-uppercase"
+        >Inspection Tool Control List Collumns</v-divider
+      >
+      <v-row class="my-3">
+        <v-col cols="4" v-for="item in collumns" :key="item.collumnId">
+          <v-checkbox
+            hide-details=""
+            color="primary"
+            :label="item.collumnEnString"
+            v-model="formData.collumns"
+            :true-value="item.collumnId"
+          />
+        </v-col>
+      </v-row>
+
       <v-divider class="mb-3"></v-divider>
       <v-btn
         variant="outlined"
@@ -58,15 +73,17 @@
 import { useAppStore } from "@/store/app";
 import useVuelidate from "@vuelidate/core";
 import { helpers, maxLength, required } from "@vuelidate/validators";
-import { reactive } from "vue";
+import { onBeforeMount, reactive, ref } from "vue";
 
 const store = useAppStore();
 const alert = store.alert;
 const props = defineProps(["closeDialog"]);
+const collumns = ref([]);
 
 const formData = reactive({
   rankName: "",
   description: "",
+  collumns: [],
 });
 
 const formStructure = reactive({
@@ -120,6 +137,16 @@ const submit = async () => {
     alert.fire(error);
   }
 };
+
+onBeforeMount(async () => {
+  collumns.value = await store.ajax({}, "ranks/collumns", "post");
+
+  collumns.value.forEach((e) => {
+    if (e.isDefault == 1) {
+      formData.collumns.push(e.collumnId);
+    }
+  });
+});
 
 const limitInput = (index) => {
   formData[index] = formData[index].slice(0, 256);

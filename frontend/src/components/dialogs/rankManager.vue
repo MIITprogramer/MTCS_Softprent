@@ -68,7 +68,7 @@
     scrollable
     persistent
     :overlay="false"
-    max-width="700px"
+    max-width=""
     transition="dialog-transition"
   >
     <AddRank :close-dialog="closeMyDialog" v-if="selectedDialog == 'addRank'" />

@@ -99,8 +99,8 @@ module.exports = {
     },
     getPoints: async (req, res) => {
         const db = new crud
-        const { typeId } = req.body
-        let points = await db.where('typeId', '=', typeId).get('t_pointcheck')
+        const { toolId } = req.body
+        let points = await db.where('toolId', '=', toolId).get('t_pointcheck')
         const checkMethods = await db.get('t_checkmethod')
 
         points = await Promise.all(points.map(point => {

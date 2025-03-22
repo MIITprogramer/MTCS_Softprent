@@ -1,5 +1,5 @@
 <template>
-  <v-card :title="'TOOL TYPES MANAGER'" rounded="xl">
+  <v-card :title="'TOOLS MANAGER'" rounded="xl">
     <template v-slot:append>
       <v-btn @click="closeDialog" flat icon>
         <v-icon>mdi-close</v-icon>
@@ -10,7 +10,7 @@
         hover=""
         class="text-uppercase"
         :search="Search"
-        :items="types"
+        :items="tools"
         :headers="headers"
       >
         <template v-slot:top>
@@ -19,7 +19,7 @@
               <v-text-field
                 variant="outlined"
                 rounded="pill"
-                label="Search Types"
+                label="Search Tools"
                 prepend-inner-icon="mdi-magnify"
                 hide-details=""
                 density="compact"
@@ -34,41 +34,46 @@
                 block
                 dark
                 prepend-icon="mdi-plus"
-                @click="openDialog('addType', null)"
+                @click="openDialog('addTool', null)"
               >
-                ADD TYPE
+                ADD TOOL
               </v-btn>
             </v-col>
           </v-row>
         </template>
-        <template v-slot:item.typeId="{ item }">
-          <v-btn
-            @click="openDialog('editType', item)"
-            flat
-            icon
-            color="transparent"
-          >
-            <v-icon color="primary">mdi-pencil</v-icon>
-          </v-btn>
-
-          <v-btn
-            flat
-            icon
-            color="transparent"
-            @click="openDialog('deleteType', item)"
-          >
-            <v-icon color="error">mdi-delete</v-icon>
-          </v-btn>
+        <template v-slot:item.toolId="{ item }">
+          <div>
+            <v-btn
+              @click="openDialog('managePoints', item)"
+              variant="outlined"
+              rounded="pill"
+              prepend-icon="mdi-information-outline"
+            >
+              Manage Point Check
+            </v-btn>
+          </div>
         </template>
-        <template v-slot:item.points="{ item }">
-          <v-btn
-            variant="outlined"
-            prepend-icon="mdi-information-outline"
-            rounded="pill"
-            @click="openDialog('managePoints', item)"
-          >
-            detail
-          </v-btn>
+
+        <template v-slot:item.actions="{ item }">
+          <div>
+            <v-btn
+              @click="openDialog('editTool', item)"
+              flat
+              icon
+              color="transparent"
+            >
+              <v-icon color="primary">mdi-pencil</v-icon>
+            </v-btn>
+
+            <v-btn
+              flat
+              icon
+              color="transparent"
+              @click="openDialog('deleteTool', item)"
+            >
+              <v-icon color="error">mdi-delete</v-icon>
+            </v-btn>
+          </div>
         </template>
       </v-data-table>
     </v-card-text>
@@ -80,35 +85,36 @@
     :overlay="false"
     transition="dialog-transition"
   >
+    <AddTool :close-dialog="closeMyDialog" v-if="selectedDialog == 'addTool'" />
+    <EditTool
+      :close-dialog="closeMyDialog"
+      v-if="selectedDialog == 'editTool'"
+      :tool="selectedItem"
+    ></EditTool>
     <v-card
       subtitle="Manage Point Checks in the tool types"
-      :title="`${selectedItem.typeName}'s Points Detail '`"
+      :title="`${selectedItem.toolName}'s Points Detail`"
       rounded="xl"
       v-if="selectedDialog == 'managePoints'"
     >
       <template v-slot:prepend>
         <v-icon size="50">mdi-checkbox-outline</v-icon>
       </template>
+
       <template v-slot:append>
         <v-btn flat icon color="transparent" @click="closeMyDialog">
           <v-icon>mdi-close</v-icon>
         </v-btn>
       </template>
       <v-card-text>
-        <PointManager :type-options="selectedItem"></PointManager>
+        <PointManager :tool="selectedItem"></PointManager>
       </v-card-text>
     </v-card>
-    <AddType :close-dialog="closeMyDialog" v-if="selectedDialog == 'addType'" />
-    <EditType
-      :selected-item="selectedItem"
-      :close-dialog="closeMyDialog"
-      v-if="selectedDialog == 'editType'"
-    >
-    </EditType>
+
     <v-card
       rounded="xl"
-      v-if="selectedDialog == 'deleteType'"
-      :title="`You are going to delete ${selectedItem.typeName.toUpperCase()}.`"
+      v-if="selectedDialog == 'deleteTool'"
+      :title="`You are going to delete ${selectedItem.toolName.toUpperCase()}.`"
       subtitle="Please confirm your action."
     >
       <template v-slot:prepend>
@@ -134,7 +140,7 @@
               rounded="pill"
               color="error"
               prepend-icon="mdi-delete"
-              @click="deleteType"
+              @click="deleteTool"
               >Delete</v-btn
             >
           </v-col>
@@ -144,29 +150,44 @@
   </v-dialog>
 </template>
 <script setup>
-import { onMounted, ref } from "vue";
+import { nextTick, onMounted, ref } from "vue";
 import { useAppStore } from "@/store/app";
-import AddType from "../forms/addType.vue";
-import EditType from "../forms/editType.vue";
+import AddTool from "../forms/addTool.vue";
+import EditTool from "../forms/editTool.vue";
 import PointManager from "./pointManager.vue";
 
 const store = useAppStore();
 const alert = store.alert;
 const dialog = ref(false);
 const selectedDialog = ref(null);
-const types = ref([]);
+const tools = ref([]);
 const Search = ref("");
 const selectedItem = ref(null);
 
 const headers = [
   {
-    title: "Type Name",
+    title: "Tool Name",
+    key: "toolName",
+    align: "start",
+  },
+  {
+    title: "Rank",
+    key: "rankName",
+    align: "start",
+  },
+  {
+    title: "Type",
     key: "typeName",
     align: "start",
   },
   {
+    title: "Point Check",
+    key: "toolId",
+    align: "start",
+  },
+  {
     title: "Actions",
-    key: "typeId",
+    key: "actions",
     align: "center",
     sortable: false,
   },
@@ -174,27 +195,31 @@ const headers = [
 
 defineProps(["closeDialog"]);
 
-const openDialog = (key, item) => {
+const openDialog = async (key, item) => {
   selectedItem.value = item;
   selectedDialog.value = key;
+  await nextTick();
   dialog.value = true;
 };
 
 const closeMyDialog = () => {
   dialog.value = false;
-  refreshType();
+  refreshUsers();
 };
 
-const refreshType = async () => {
-  types.value = await store.ajax({}, "type", "post");
+const refreshUsers = async () => {
+  tools.value = await store.ajax({}, "tool", "post");
+  tools.value.forEach((tool, index) => {
+    tools.value[index].actions = tool.userId;
+  });
 };
 
-const deleteType = async () => {
+const deleteTool = async () => {
   try {
-    await store.ajax(selectedItem.value, "type/deletetype", "post");
+    await store.ajax(selectedItem.value, "tool/delete", "post");
     alert.fire({
-      title: "Type deleted",
-      text: "Type deleted successfully",
+      title: "Tool deleted",
+      text: "Tool deleted successfully",
       icon: "success",
       timer: 3000,
     });
@@ -206,6 +231,6 @@ const deleteType = async () => {
 };
 
 onMounted(() => {
-  refreshType();
+  refreshUsers();
 });
 </script>

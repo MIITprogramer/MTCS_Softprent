@@ -53,6 +53,14 @@
       "
       v-if="config == 'typeManager'"
     />
+    <ToolsManager
+      :close-dialog="
+        () => {
+          configDialog = false;
+        }
+      "
+      v-if="config == 'toolManager'"
+    ></ToolsManager>
   </v-dialog>
 </template>
 <script setup>
@@ -61,6 +69,8 @@ import RoleManager from "../dialogs/roleManager.vue";
 import UserManager from "../dialogs/userManager.vue";
 import RankManager from "../dialogs/rankManager.vue";
 import TypeManager from "../dialogs/typeManager.vue";
+import ToolsManager from "../dialogs/toolsManager.vue";
+
 const configDialog = ref(false);
 const config = ref(null);
 const configs = [
@@ -87,6 +97,12 @@ const configs = [
     subtitle: "Setting up tool types.",
     icon: "mdi-wrench-cog",
     key: "typeManager",
+  },
+  {
+    label: "TOOLS SETUP",
+    subtitle: "Setting up tools.",
+    icon: "mdi-tools",
+    key: "toolManager",
   },
 ];
 

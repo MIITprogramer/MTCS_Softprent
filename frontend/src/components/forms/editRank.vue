@@ -41,6 +41,21 @@
           :error-messages="validator[index].$errors.map((e) => e.$message)"
         />
       </div>
+
+      <v-divider class="text-uppercase"
+        >Inspection Tool Control List Collumns</v-divider
+      >
+      <v-row class="my-3">
+        <v-col cols="4" v-for="item in collumns" :key="item.collumnId">
+          <v-checkbox
+            hide-details=""
+            color="primary"
+            :label="item.collumnEnString"
+            v-model="formData.collumns"
+            :true-value="item.collumnId"
+          />
+        </v-col>
+      </v-row>
       <v-divider class="mb-3"></v-divider>
       <v-btn
         variant="outlined"
@@ -58,17 +73,21 @@
 import { useAppStore } from "@/store/app";
 import useVuelidate from "@vuelidate/core";
 import { helpers, maxLength, required } from "@vuelidate/validators";
-import { reactive } from "vue";
+import { onBeforeMount, reactive, ref } from "vue";
 
 const store = useAppStore();
 const alert = store.alert;
 const props = defineProps(["closeDialog", "selectedItem"]);
+const collumns = ref([]);
 
 const formData = reactive({
   rankId: props.selectedItem.rankId,
   rankName: props.selectedItem.rankName,
   description: props.selectedItem.description,
+  collumns: [],
 });
+
+console.log(formData);
 
 const formStructure = reactive({
   rankName: {
@@ -125,4 +144,14 @@ const submit = async () => {
 const limitInput = (index) => {
   formData[index] = formData[index].slice(0, 256);
 };
+
+onBeforeMount(async () => {
+  collumns.value = await store.ajax({}, "ranks/collumns", "post");
+
+  const col = JSON.parse(props.selectedItem.collumns);
+
+  col.forEach((element) => {
+    formData.collumns.push(Number(element));
+  });
+});
 </script>

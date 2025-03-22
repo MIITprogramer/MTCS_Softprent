@@ -62,7 +62,7 @@
     transition="dialog-transition"
   >
     <AddPoint
-      :type-id="typeId"
+      :tool-id="toolId"
       :closeDialog="closeDialog"
       v-if="buttonAction == 'addPoint'"
     />
@@ -122,13 +122,12 @@ import { useAppStore } from "@/store/app";
 import EditPoint from "../forms/editPoint.vue";
 import MethodManager from "./methodManager.vue";
 
-const props = defineProps(["typeOptions"]);
-
+const props = defineProps(["tool"]);
 const buttonAction = ref(null);
 const selectedItem = ref(null);
 const dialog = ref(false);
 const store = useAppStore();
-const typeId = props.typeOptions.typeId;
+const toolId = props.tool.toolId;
 const options = ref([]);
 const headers = [
   {
@@ -151,7 +150,7 @@ const headers = [
 ];
 
 const refreshoptions = async () => {
-  options.value = await store.ajax({ typeId }, "type/getpoints", "post");
+  options.value = await store.ajax({ toolId }, "type/getpoints", "post");
 };
 
 const openDialog = async (action, item) => {
