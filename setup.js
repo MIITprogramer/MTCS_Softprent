@@ -28,7 +28,7 @@ async function main() {
     const SQL_PATH = await askQuestion("Masukkan path SQL: ");
 
 
-    const mysqlCommand = isWindows ? path.join(SQL_PATH, "mysql.exe") : "mysql";
+    const mysqlCommand = isWindows ? path.join(SQL_PATH, "mysql.exe") : path.join(SQL_PATH, "mysql");
 
     rl.close();
 
@@ -177,7 +177,9 @@ pm2 resurrect
     function checkDatabaseExists(DB_HOST, DB_USER, DB_PASS, SQL_PATH) {
         try {
             console.log("🔍 Mengecek apakah database sudah ada...");
-            const mysqlPath = path.join(SQL_PATH, "mysql.exe");
+
+            const mysqlCommand = isWindows ? path.join(SQL_PATH, "mysql.exe") : path.join(SQL_PATH, "mysql");
+            const mysqlPath = path.join(SQL_PATH, mysqlCommand);
             const checkCommand = `"${mysqlPath}" -h ${DB_HOST} -u ${DB_USER} ${DB_PASS ? `-p${DB_PASS}` : ""} -e "USE mtcs_softpren;"`;
             execSync(checkCommand, { stdio: "inherit", shell: true });
 
