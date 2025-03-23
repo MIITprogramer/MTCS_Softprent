@@ -25,7 +25,7 @@ module.exports = {
                     // Path ke file gambar
                     const filePath = path.join(
                         __dirname,
-                        "../dist/uploads/checkimage/",
+                        "../uploads/checkimage/",
                         `${tool.toolId}.png`
                     );
 
@@ -73,7 +73,7 @@ module.exports = {
             }
 
             const uploadedFile = req.files.file;
-            const filePath = path.join(__dirname, '../dist/uploads/checkimage/', `${insert.insertId}.png`);
+            const filePath = path.join(__dirname, '../uploads/checkimage/', `${insert.insertId}.png`);
             uploadedFile.mv(filePath, function (err) {
                 if (err) {
                     throw {
@@ -95,7 +95,7 @@ module.exports = {
     reqImage: async (req, res) => {
         try {
             const { toolId } = req.body; // Ambil toolId dari request
-            const filePath = path.join(__dirname, '../dist/uploads/checkimage/', `${toolId}.png`);
+            const filePath = path.join(__dirname, '../uploads/checkimage/', `${toolId}.png`);
 
             // Periksa apakah file ada
             if (!fs.existsSync(filePath)) {
@@ -140,7 +140,7 @@ module.exports = {
             }
 
             const uploadedFile = req.files.file;
-            const filePath = path.join(__dirname, '../dist/uploads/checkimage/', `${toolId}.png`);
+            const filePath = path.join(__dirname, '../uploads/checkimage/', `${toolId}.png`);
             uploadedFile.mv(filePath, function (err) {
                 if (err) {
                     throw {
@@ -166,7 +166,7 @@ module.exports = {
             await db.where('toolId', '=', req.body.toolId).delete('t_tools');
 
             // Path file yang akan dihapus
-            const filePath = path.join(__dirname, '../dist/uploads/checkimage/', `${req.body.toolId}.png`);
+            const filePath = path.join(__dirname, '../uploads/checkimage/', `${req.body.toolId}.png`);
 
             // Periksa apakah file ada sebelum dihapus
             if (fs.existsSync(filePath)) {
