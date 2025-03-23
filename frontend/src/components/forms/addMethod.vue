@@ -33,6 +33,59 @@
         v-model="formData.resultType"
         :error-messages="validator.resultType.$errors.map((e) => e.$message)"
       />
+      <v-divider>Standard</v-divider>
+      <v-row>
+        <v-col cols="12" v-if="formData.resultType != 4">
+          <v-text-field
+            v-if="formData.resultType == 1 || formData.resultType == 2"
+            variant="outlined"
+            rounded="pill"
+            label="Standard"
+            :readonly="formData.resultType == 1"
+            type="text"
+            v-model="matchString"
+            :error-messages="validator.standard.$errors.map((e) => e.$message)"
+          >
+          </v-text-field>
+          <v-text-field
+            v-if="
+              formData.resultType == 3 ||
+              formData.resultType == 5 ||
+              formData.resultType == 6
+            "
+            hide-spin-buttons
+            variant="outlined"
+            rounded="pill"
+            label="Standard"
+            :readonly="formData.resultType == 1"
+            type="number"
+            v-model="matchNumber"
+            :error-messages="validator.standard.$errors.map((e) => e.$message)"
+          ></v-text-field>
+        </v-col>
+        <v-col cols="16" v-if="formData.resultType == 4">
+          <v-text-field
+            hide-spin-buttons
+            variant="outlined"
+            rounded="pill"
+            label="Minimum Value"
+            type="number"
+            v-model="minNumber"
+            :error-messages="validator.standard.$errors.map((e) => e.$message)"
+          ></v-text-field>
+        </v-col>
+        <v-col cols="16" v-if="formData.resultType == 4">
+          <v-text-field
+            hide-spin-buttons
+            variant="outlined"
+            rounded="pill"
+            label="Maximum Value"
+            type="number"
+            v-model="maxNumber"
+            :error-messages="validator.standard.$errors.map((e) => e.$message)"
+          ></v-text-field>
+        </v-col>
+      </v-row>
       <v-divider class="mb-3"></v-divider>
       <v-btn
         variant="outlined"
@@ -50,7 +103,7 @@
 import { useAppStore } from "@/store/app";
 import useVuelidate from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
-import { onBeforeMount, reactive, ref } from "vue";
+import { nextTick, onBeforeMount, reactive, ref, watch } from "vue";
 
 const props = defineProps(["closeDialog", "point"]);
 const pointCheckId = props.point;
@@ -62,7 +115,54 @@ const formData = reactive({
   pointCheckId,
   methodString: "",
   resultType: "",
+  standard: {
+    name: "",
+    arg: [],
+  },
 });
+
+const setStandard = () => {
+  const e = formData.resultType;
+  switch (e) {
+    case 1:
+      matchString.value = "OK";
+      formData.standard.name = "matchString";
+      formData.standard.arg = [matchString.value];
+      break;
+    case 2:
+      matchString.value = "";
+      formData.standard.name = "matchString";
+      formData.standard.arg = [matchString.value];
+      break;
+    case 3:
+      formData.standard.name = "matchNumber";
+      formData.standard.arg = [matchNumber.value];
+      break;
+    case 4:
+      formData.standard.name = "numberRange";
+      formData.standard.arg = [minNumber.value, maxNumber.value];
+      break;
+    case 5:
+      formData.standard.name = "largerThan";
+      formData.standard.arg = [matchNumber.value];
+      break;
+    case 6:
+      formData.standard.name = "lessThan";
+      formData.standard.arg = [matchNumber.value];
+      break;
+    default:
+      formData.standard.name = "";
+      formData.standard.arg = [];
+      break;
+  }
+};
+
+const matchString = ref("");
+const matchNumber = ref();
+const minNumber = ref();
+const maxNumber = ref();
+
+watch(() => formData.resultType, setStandard());
 
 const rules = {
   methodString: {
@@ -71,11 +171,18 @@ const rules = {
   resultType: {
     required: helpers.withMessage("Please select a result type", required),
   },
+  standard: {
+    required: helpers.withMessage("Standard is required", () => {
+      return formData.standard.name !== "" && formData.standard.arg.length > 0;
+    }),
+  },
 };
 const validator = useVuelidate(rules, formData);
 
 const submit = async () => {
   try {
+    setStandard();
+    await nextTick();
     const valid = await validator.value.$validate();
     if (!valid) {
       throw {

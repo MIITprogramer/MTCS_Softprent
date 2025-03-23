@@ -2,8 +2,31 @@
   <v-app>
     <v-app-bar>
       <template v-slot:append>
-        <v-btn flat icon @click="settingsDrawer = !settingsDrawer">
+        <v-btn
+          flat
+          icon
+          @click="
+            () => {
+              menuDrawer = false;
+              settingsDrawer = true;
+            }
+          "
+        >
           <v-icon>mdi-cogs</v-icon>
+        </v-btn>
+      </template>
+      <template v-slot:prepend>
+        <v-btn
+          flat
+          icon
+          @click="
+            () => {
+              menuDrawer = true;
+              settingsDrawer = false;
+            }
+          "
+        >
+          <v-icon color="primary">mdi-view-dashboard</v-icon>
         </v-btn>
       </template>
     </v-app-bar>
@@ -34,8 +57,17 @@
         </v-list-item>
       </v-list>
     </v-navigation-drawer>
+
+    <v-navigation-drawer temporary="" location="left" v-model="menuDrawer">
+      <v-list>
+        <v-list-item>
+          <v-divider><v-icon>mdi-view-dashboard</v-icon> OPTIONS</v-divider>
+        </v-list-item>
+        <FiturMenu />
+      </v-list>
+    </v-navigation-drawer>
     <v-main>
-      <router-view v-if="!settingsDrawer" />
+      <router-view v-if="!settingsDrawer && !menuDrawer" />
     </v-main>
   </v-app>
   <v-dialog
@@ -90,6 +122,7 @@
 
 <script setup>
 import ConfigMenus from "@/components/menus/configMenus.vue";
+import FiturMenu from "@/components/menus/fiturMenu.vue";
 import router from "@/router";
 import { useAppStore } from "@/store/app";
 import { nextTick, ref } from "vue";
@@ -97,6 +130,7 @@ import { nextTick, ref } from "vue";
 const settingsDrawer = ref(false);
 const logoutDialog = ref(false);
 const store = useAppStore();
+const menuDrawer = ref(false);
 
 const logout = async () => {
   store.sessionId = "";

@@ -12,10 +12,4 @@
 </template>
 <script setup>
 import LoginForm from "@/components/forms/loginForm.vue";
-import { useAppStore } from "@/store/app";
-import { onMounted } from "vue";
-const store = useAppStore();
-onMounted(async () => {
-  store.togglePreload();
-});
 </script>

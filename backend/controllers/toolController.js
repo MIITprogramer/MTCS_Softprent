@@ -1,23 +1,53 @@
 const crud = require('../helpers/crud')
 const crypter = require('../helpers/crypter')
+const path = require("path"); // Untuk membangun path file secara aman
+const fs = require('fs');
 
 module.exports = {
     getTools: async (req, res) => {
-        const db = new crud
-        let tools = await db.join('left', 't_rank', 't_rank.rankId', 't_tools.rankId').join('left', 't_tooltype', 't_tooltype.typeId', 't_tools.typeId').get('t_tools')
+        try {
+            const db = new crud();
+            let tools = await db
+                .join("left", "t_rank", "t_rank.rankId", "t_tools.rankId")
+                .join("left", "t_tooltype", "t_tooltype.typeId", "t_tools.typeId")
+                .get("t_tools");
 
-        tools = await Promise.all(tools.map(async (tool) => {
-            const dbInstance = new crud(); // Buat instance baru agar where() tidak tercampur
+            tools = await Promise.all(
+                tools.map(async (tool) => {
+                    const dbInstance = new crud();
+                    const data = await dbInstance
+                        .where("toolId", "=", Number(tool.toolId))
+                        .where("dataValue", "is not", null)
+                        .get("tooldata");
 
-            const data = await dbInstance.where('toolId', '=', Number(tool.toolId)).where('dataValue', 'is not', null).get('tooldata');
+                    console.log(dbInstance.viewLastQuery()); // Debugging
 
-            console.log(dbInstance.viewLastQuery()); // Debugging
+                    // Path ke file gambar
+                    const filePath = path.join(
+                        __dirname,
+                        "../dist/uploads/checkimage/",
+                        `${tool.toolId}.png`
+                    );
 
-            tool.data = data;
-            return tool;
-        }));
+                    let fileBase64 = "";
+                    if (fs.existsSync(filePath)) {
+                        const fileBuffer = fs.readFileSync(filePath);
+                        fileBase64 = `data:image/png;base64,${fileBuffer.toString("base64")}`;
+                    }
 
-        return res.status(200).json(tools)
+                    return {
+                        ...tool,
+                        data,
+                        file: fileBase64, // Tambahkan gambar dalam format base64
+                    };
+                })
+            );
+
+            return res.status(200).json(tools);
+        } catch (error) {
+            console.error("Error fetching tools:", error);
+            return res.status(500).json({ message: "Internal Server Error" });
+        }
     },
     addTool: async (req, res) => {
 
@@ -37,13 +67,51 @@ module.exports = {
                 }
             }
 
-            await db.insert('t_tools', data)
-            return res.status(200).json({ message: 'success' })
+            const insert = await db.insert('t_tools', data)
+            if (!req.files || Object.keys(req.files).length === 0) {
+                return res.status(400).send("No files were uploaded.");
+            }
+
+            const uploadedFile = req.files.file;
+            const filePath = path.join(__dirname, '../dist/uploads/checkimage/', `${insert.insertId}.png`);
+            uploadedFile.mv(filePath, function (err) {
+                if (err) {
+                    throw {
+                        title: "Upload Error",
+                        text: "the file is not uploaded, please try again from tools edit menu!",
+                        icon: "error",
+                        timer: 3000,
+                    }
+                }
+                return res.status(200).json({ message: 'success' })
+            });
 
         } catch (error) {
 
             console.log(error)
             return res.status(404).json(error)
+        }
+    },
+    reqImage: async (req, res) => {
+        try {
+            const { toolId } = req.body; // Ambil toolId dari request
+            const filePath = path.join(__dirname, '../dist/uploads/checkimage/', `${toolId}.png`);
+
+            // Periksa apakah file ada
+            if (!fs.existsSync(filePath)) {
+                return res.status(404).json({
+                    message: "File not found",
+                    path: filePath
+                });
+            }
+
+            // Kirim file ke klien
+            res.sendFile(filePath);
+        } catch (error) {
+            console.error("Error sending file:", error);
+            res.status(500).json({
+                message: "Internal Server Error"
+            });
         }
     },
 
@@ -67,7 +135,23 @@ module.exports = {
 
             const update = await db.where('toolId', '=', toolId).update('t_tools', { toolName, toolId, rankId, registerNumber })
 
-            return res.status(200).json({ message: 'success' })
+            if (!req.files || Object.keys(req.files).length === 0) {
+                return res.status(400).send("No files were uploaded.");
+            }
+
+            const uploadedFile = req.files.file;
+            const filePath = path.join(__dirname, '../dist/uploads/checkimage/', `${toolId}.png`);
+            uploadedFile.mv(filePath, function (err) {
+                if (err) {
+                    throw {
+                        title: "Upload Error",
+                        text: "the file is not uploaded, please try again from tools edit menu!",
+                        icon: "error",
+                        timer: 3000,
+                    }
+                }
+                return res.status(200).json({ message: 'success' })
+            });
 
         } catch (error) {
 
@@ -82,7 +166,6 @@ module.exports = {
 
         return res.status(200).json({ message: 'success' })
     },
-
     getData: async (req, res) => {
         try {
             const { toolId, collumns } = req.body;
@@ -126,7 +209,6 @@ module.exports = {
             return res.status(500).json({ error: "Internal Server Error" });
         }
     },
-
     updateData: async (req, res) => {
         const { dataId, dataValue } = req.body
         const db = new crud
@@ -137,5 +219,44 @@ module.exports = {
         const db = new crud
         const column = await db.get('t_collumns')
         return res.status(200).json(column)
+    },
+    dailyCheckInit: async (req, res) => {
+        try {
+            const db = new crud
+            const { toolId, sessionId, toolName, registerNumber } = req.body
+            const decrypted = crypter.decryptObject(sessionId)
+            const { userId, userName } = decrypted
+            let pointChecks = await db.where('toolId', '=', toolId).get('t_pointcheck')
+            if (pointChecks.length < 1) {
+                throw {
+                    title: "Empty point check",
+                    text: `No point check found for ${toolName} - ${registerNumber}! Please contact admistartor to setup the check points!`,
+                    icon: "error",
+                    timer: 5000
+                }
+            }
+
+            pointChecks = await Promise.all(pointChecks.map(async pc => {
+                const dbInstance = new crud
+                const methods = await dbInstance.where('pointCheckId', '=', pc.checkId).get('t_checkmethod')
+                if (methods.length < 1) {
+                    throw {
+                        title: "Empty Check Method",
+                        text: `No check methods found for ${toolName} - ${registerNumber} - ${pc.pointString}! Please contact admistartor to setup the check methods!`,
+                        icon: "error",
+                        timer: 5000
+                    }
+                }
+
+                pc.methods = methods
+                return pc
+            }))
+            return res.status(200).json({
+                pointChecks, checker: { userId, userName }
+            })
+        } catch (error) {
+            console.log(error)
+            return res.status(400).json(error)
+        }
     }
 }

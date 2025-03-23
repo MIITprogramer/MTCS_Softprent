@@ -9,5 +9,7 @@ router.post('/delete', controller.deleteTool)
 router.post('/data', controller.getData)
 router.post('/updatedata', controller.updateData)
 router.post('/getcollumn', controller.getColumn)
+router.post('/dailycheckinit', controller.dailyCheckInit)
+router.post('/getimage', controller.reqImage)
 
 module.exports = router

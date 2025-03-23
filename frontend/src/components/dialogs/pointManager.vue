@@ -1,4 +1,26 @@
 <template>
+  <!-- Wrapper untuk gambar agar tetap sticky -->
+  <div class="sticky-container">
+    <v-toolbar color="transparent">
+      <template v-slot:append>
+        <v-btn
+          @click="openDialog('addPoint')"
+          prepend-icon="mdi-plus"
+          variant="outlined"
+          rounded="pill"
+          block
+          color="primary"
+          dark
+        >
+          Add Point Check
+        </v-btn>
+      </template>
+    </v-toolbar>
+    <div class="sticky-image">
+      <v-img height="300" :src="dataUrl"></v-img>
+    </div>
+    <v-divider class="my-5"></v-divider>
+  </div>
   <v-data-table :headers="headers" :items="options">
     <template v-slot:item.pointString="{ item }">
       <div class="text-no-wrap">
@@ -8,14 +30,31 @@
     <template v-slot:item.methods="{ item }">
       <div class="text-no-wrap">
         <v-btn
+          :color="item.methods.length < 1 ? 'error' : 'success'"
           @click="openDialog('manageMethods', item)"
-          variant="outlined"
           rounded="pill"
           density="compact"
           prepend-icon="mdi-information-outline"
         >
-          Check Methods
+          Check Methods ({{ item.methods.length }} methods)
         </v-btn>
+      </div>
+    </template>
+    <template v-slot:item.pointNumber="{ item }">
+      <div
+        class="d-flex justify-center text-center w-100"
+        v-if="item.pointNumber != 0"
+      >
+        <div
+          style="
+            border-radius: 50%;
+            border: 1px solid black;
+            width: 25px;
+            height: 25px;
+          "
+        >
+          {{ item.pointNumber }}
+        </div>
       </div>
     </template>
     <template v-slot:item.checkId="{ item }">
@@ -36,33 +75,16 @@
         <v-icon color="error">mdi-delete</v-icon>
       </v-btn>
     </template>
-    <template v-slot:top>
-      <v-row>
-        <v-col cols="3" offset="9">
-          <v-btn
-            @click="openDialog('addPoint')"
-            prepend-icon="mdi-plus"
-            variant="outlined"
-            rounded="pill"
-            block
-            color="primary"
-            dark
-            >Add Point Check</v-btn
-          >
-        </v-col>
-      </v-row>
-    </template>
   </v-data-table>
   <v-dialog
     v-model="dialog"
     scrollable
     persistent
     :overlay="false"
-    :max-width="buttonAction == 'manageMethods' ? '' : '500px'"
     transition="dialog-transition"
   >
     <AddPoint
-      :tool-id="toolId"
+      :tool="props.tool"
       :closeDialog="closeDialog"
       v-if="buttonAction == 'addPoint'"
     />
@@ -131,6 +153,11 @@ const toolId = props.tool.toolId;
 const options = ref([]);
 const headers = [
   {
+    key: "pointNumber",
+    title: "Point Number",
+    align: "center",
+  },
+  {
     key: "pointString",
     title: "Point Check",
     align: "start",
@@ -148,6 +175,10 @@ const headers = [
     sortable: false,
   },
 ];
+
+store.cachedImage = props.tool.file;
+
+const dataUrl = ref(store.cachedImage);
 
 const refreshoptions = async () => {
   options.value = await store.ajax({ toolId }, "type/getpoints", "post");
@@ -187,3 +218,37 @@ onBeforeMount(() => {
   refreshoptions();
 });
 </script>
+<style scoped>
+/* Wrapper untuk gambar agar tetap sticky */
+.sticky-container {
+  position: sticky;
+  top: 0;
+  z-index: 10; /* Pastikan gambar tetap di atas */
+  background: white; /* Supaya tidak transparan saat sticky */
+  padding: 10px 0;
+}
+
+/* Styling untuk gambar */
+.sticky-image {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+/* Table harus bisa di-scroll di belakang */
+.table-content {
+  position: relative;
+  z-index: 1;
+}
+
+/* Styling untuk elemen bulat */
+.circle {
+  border-radius: 50%;
+  border: 1px solid black;
+  width: 25px;
+  height: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+</style>

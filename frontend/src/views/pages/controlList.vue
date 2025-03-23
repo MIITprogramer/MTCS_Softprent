@@ -288,7 +288,6 @@ const refreshData = async () => {
   tools.value = await store.ajax({}, "tool", "post");
   collumns.value = await store.ajax({}, "tool/getcollumn", "post");
   setRank(ranks.value[0]);
-  store.preload = false;
 };
 
 watch(issued, (e) => {
@@ -331,7 +330,7 @@ onBeforeMount(() => {
   refreshData();
 });
 
-onMounted(() => {
+onMounted(async () => {
   fitToPage();
 
   $(printA.value).css("height", `${papers[paper.value].h}mm`);

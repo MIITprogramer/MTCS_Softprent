@@ -63,6 +63,15 @@
         prepend-inner-icon="mdi-shield-account"
         :error-messages="validator.typeId.$errors.map((e) => e.$message)"
       />
+      <v-file-upload
+        clearable=""
+        icon="mdi-file-cad"
+        density="compact"
+        accept="image/*"
+        title="Checking Point Image"
+        v-model="formData.file"
+        :error-messages="validator.file.$errors.map((e) => e.$message)"
+      />
       <v-divider class="mb-3"></v-divider>
       <v-btn
         variant="outlined"
@@ -80,7 +89,8 @@
 import { useAppStore } from "@/store/app";
 import useVuelidate from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
-import { onMounted, reactive, ref } from "vue";
+import { onMounted, reactive, ref, watch } from "vue";
+import { VFileUpload } from "vuetify/labs/VFileUpload";
 
 const store = useAppStore();
 const alert = store.alert;
@@ -94,7 +104,15 @@ const formData = reactive({
   rankId: "",
   typeId: "",
   registerNumber: "",
+  file: null,
 });
+
+watch(
+  () => formData.file,
+  (e) => {
+    console.log(e);
+  }
+);
 
 const rules = {
   toolName: {
@@ -110,6 +128,9 @@ const rules = {
   registerNumber: {
     required: helpers.withMessage("Register number is required", required),
   },
+  file: {
+    required: helpers.withMessage("Checking point Image is required", required),
+  },
 };
 const validator = useVuelidate(rules, formData);
 
@@ -124,7 +145,22 @@ const submit = async () => {
         timer: 3000,
       };
     }
-    await store.ajax(formData, "tool/add", "post");
+
+    const reqData = new FormData();
+
+    for (const key in formData) {
+      if (formData[key] instanceof File) {
+        reqData.append(key, formData[key]); // Jika file, langsung append
+      } else if (Array.isArray(formData[key])) {
+        formData[key].forEach((item, index) => {
+          reqData.append(`${key}[${index}]`, item);
+        });
+      } else {
+        reqData.append(key, formData[key]); // Untuk string, number, dll.
+      }
+    }
+
+    await store.ajax(reqData, "tool/add", "post");
     alert.fire({
       title: "Tool Added",
       text: "Tool added successfully.",

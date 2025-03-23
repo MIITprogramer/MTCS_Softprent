@@ -4,7 +4,7 @@ module.exports = {
     addPoint: async (req, res) => {
         try {
             const db = new crud
-            const { toolId, pointString } = req.body
+            const { toolId, pointString, pointNumber } = req.body
             const duplicate = await db.where('pointString', '=', pointString).where('toolId', '=', toolId).get('t_pointcheck')
 
             if (duplicate.length > 0) {
@@ -16,7 +16,7 @@ module.exports = {
                 }
             }
 
-            await db.insert('t_pointcheck', { toolId, pointString })
+            await db.insert('t_pointcheck', { toolId, pointString, pointNumber })
 
             return res.status(200).json({ message: 'success' });
 
@@ -48,7 +48,8 @@ module.exports = {
     editPoint: async (req, res) => {
         try {
             const db = new crud
-            const { toolId, pointString, checkId } = req.body
+
+            const { toolId, pointString, pointNumber, checkId } = req.body
             const duplicate = await db.where('pointString', '=', pointString).where('toolId', '=', toolId).where('checkId', '!=', checkId).get('t_pointcheck')
 
             if (duplicate.length > 0) {
@@ -61,7 +62,7 @@ module.exports = {
             }
 
             db.where('checkId', '=', checkId)
-            await db.update('t_pointcheck', { pointString })
+            await db.update('t_pointcheck', { pointString, pointNumber })
 
             return res.status(200).json({ message: 'success' })
 
@@ -79,7 +80,7 @@ module.exports = {
     addMethod: async (req, res) => {
         try {
             const db = new crud
-            const { pointCheckId, methodString, resultType } = req.body
+            const { pointCheckId, methodString, resultType, standard } = req.body
             const duplicate = await db.where('pointCheckId', '=', pointCheckId).where('methodString', '=', methodString).get('t_checkmethod')
 
             if (duplicate.length > 0) {
@@ -91,7 +92,7 @@ module.exports = {
                 }
             }
 
-            const added = await db.insert('t_checkmethod', { pointCheckId, methodString, resultType })
+            const added = await db.insert('t_checkmethod', { pointCheckId, methodString, resultType, standard: JSON.stringify(standard) })
 
             return res.status(200).json(added);
 
@@ -103,6 +104,7 @@ module.exports = {
     editMethod: async (req, res) => {
         try {
             const {
+                standard,
                 methodString,
                 resultType,
                 typeLabel,
@@ -130,6 +132,7 @@ module.exports = {
                 .update('t_checkmethod', {
                     methodString,
                     resultType,
+                    standard: JSON.stringify(standard),
                 })
 
             return res.status(200).json({ response: 'success' })
