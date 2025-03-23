@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 22 Mar 2025 pada 21.41
+-- Waktu pembuatan: 23 Mar 2025 pada 16.44
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.0.30
 
@@ -76,7 +76,7 @@ INSERT INTO `tooldata` (`dataId`, `columId`, `dataValue`, `toolId`) VALUES
 (10, 9, 'External 1/Year', 4),
 (11, 4, '0,05 mm', 4),
 (12, 8, 'Inspection', 4),
-(33, 13, NULL, 4);
+(19, 13, NULL, 4);
 
 -- --------------------------------------------------------
 
@@ -88,23 +88,24 @@ CREATE TABLE `t_checkmethod` (
   `methodId` int(11) NOT NULL,
   `pointCheckId` int(11) NOT NULL,
   `methodString` varchar(1024) NOT NULL,
-  `resultType` int(11) NOT NULL
+  `resultType` int(11) NOT NULL,
+  `standard` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data untuk tabel `t_checkmethod`
 --
 
-INSERT INTO `t_checkmethod` (`methodId`, `pointCheckId`, `methodString`, `resultType`) VALUES
-(40, 51, 'Apakah kondisi Outside Jaws tidak berkarat ,tdk lecet , rusak?', 1),
-(41, 52, 'Apakah kondisi Inside Jaws tidak berkarat & tdk lecet, rusak?', 1),
-(42, 53, 'Apakah angka pada display unit dapat terbaca jelas?', 1),
-(43, 54, 'Apakah jika zero origin ditekan menunjukkan angka \"0\" pada display unit?', 1),
-(44, 55, 'Apakah Bagian Skala Vernier dapat digeser dengan lancar?', 1),
-(45, 56, 'Apakah kondisi Depth Bar tidak berkarat & tdk lecet, rusak?', 1),
-(46, 57, 'a. Apakah pada Digital caliper tercantum sticker tanggal kalibrasi ulang ?', 1),
-(47, 57, 'b. Apakah tanggal next kalibrasi pada sticker masih berlaku ?', 1),
-(48, 57, 'c. Apakah sticker kalibrasi ulang masih utuh dan dapat dibaca dengan jelas ?', 1);
+INSERT INTO `t_checkmethod` (`methodId`, `pointCheckId`, `methodString`, `resultType`, `standard`) VALUES
+(2, 2, 'Apakah kondisi Inside Jaws tidak berkarat & tdk lecet, rusak?', 1, '{\"name\":\"matchString\",\"arg\":[\"OK\"]}'),
+(3, 3, 'Apakah kondisi Depth Bar tidak berkarat & tdk lecet, rusak?', 1, '{\"name\":\"matchString\",\"arg\":[\"OK\"]}'),
+(4, 4, 'Apakah angka pada display unit dapat terbaca jelas?', 1, '{\"name\":\"matchString\",\"arg\":[\"OK\"]}'),
+(5, 6, 'Apakah jika zero origin ditekan menunjukkan angka \"0\" pada display unit?', 1, '{\"name\":\"matchString\",\"arg\":[\"OK\"]}'),
+(6, 7, 'Apakah Bagian Skala Vernier dapat digeser dengan lancar?', 1, '{\"name\":\"matchString\",\"arg\":[\"OK\"]}'),
+(7, 8, 'a. Apakah pada Digital caliper tercantum sticker tanggal kalibrasi ulang ?', 1, '{\"name\":\"matchString\",\"arg\":[\"OK\"]}'),
+(8, 8, 'b. Apakah tanggal next kalibrasi pada sticker masih berlaku ?', 1, '{\"name\":\"matchString\",\"arg\":[\"OK\"]}'),
+(9, 8, 'c. Apakah sticker kalibrasi ulang masih utuh dan dapat dibaca dengan jelas ?', 1, '{\"name\":\"matchString\",\"arg\":[\"OK\"]}'),
+(10, 1, 'Apakah kondisi Outside Jaws tidak berkarat ,tdk lecet , rusak?', 1, '{\"name\":\"matchString\",\"arg\":[\"OK\"]}');
 
 -- --------------------------------------------------------
 
@@ -141,27 +142,43 @@ INSERT INTO `t_collumns` (`collumnId`, `collumnEnString`, `columnJpString`, `isD
 -- --------------------------------------------------------
 
 --
+-- Struktur dari tabel `t_dailyinspection`
+--
+
+CREATE TABLE `t_dailyinspection` (
+  `insId` int(11) NOT NULL,
+  `toolId` int(11) NOT NULL,
+  `instData` varchar(1024) NOT NULL,
+  `checker` int(11) NOT NULL,
+  `checkDate` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `judgement` int(11) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Struktur dari tabel `t_pointcheck`
 --
 
 CREATE TABLE `t_pointcheck` (
   `checkId` int(11) NOT NULL,
   `toolId` int(11) NOT NULL,
-  `pointString` varchar(128) NOT NULL
+  `pointString` varchar(128) NOT NULL,
+  `pointNumber` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data untuk tabel `t_pointcheck`
 --
 
-INSERT INTO `t_pointcheck` (`checkId`, `toolId`, `pointString`) VALUES
-(51, 4, 'Outside Jaws'),
-(52, 4, 'Inside Jaws'),
-(53, 4, 'Display Unit'),
-(54, 4, 'Zero Origin'),
-(55, 4, 'Skala Vernier'),
-(56, 4, 'Depth Bar'),
-(57, 4, 'Kalibrasi');
+INSERT INTO `t_pointcheck` (`checkId`, `toolId`, `pointString`, `pointNumber`) VALUES
+(1, 4, 'Outside Jaws', 1),
+(2, 4, 'Inside Jaws', 2),
+(3, 4, 'Depth Bar', 3),
+(4, 4, 'Display Unit', 4),
+(6, 4, 'Zero Origin', 5),
+(7, 4, 'Skala Vernier', 6),
+(8, 4, 'Kalibrasi', 0);
 
 -- --------------------------------------------------------
 
@@ -203,7 +220,7 @@ CREATE TABLE `t_roles` (
 --
 
 INSERT INTO `t_roles` (`roleId`, `roleName`, `dashboardPage`) VALUES
-(1, 'administrator', '/home/dashboard');
+(1, 'administrator', '/home/list');
 
 -- --------------------------------------------------------
 
@@ -266,7 +283,7 @@ CREATE TABLE `t_user` (
 --
 
 INSERT INTO `t_user` (`userId`, `userName`, `roleId`, `userPassword`, `active`, `lastLogin`, `lastIP`) VALUES
-('system', 'MIIT DEVELOPER', 1, 'U2FsdGVkX1/rkR8/1pL6MUJvxfVtSk7Nd+lC8x3y08s=', 1, '2025-03-22 07:38:47', '192.168.1.188'),
+('system', 'MIIT DEVELOPER', 1, 'U2FsdGVkX1/rkR8/1pL6MUJvxfVtSk7Nd+lC8x3y08s=', 1, '2025-03-23 03:43:03', '192.168.1.188'),
 ('trial', 'trial', 1, 'U2FsdGVkX1/I+yQIHbTVuIx5kV6BmtNzLVVP6Zk/9C0=', 1, NULL, NULL);
 
 --
@@ -299,6 +316,12 @@ ALTER TABLE `t_checkmethod`
 --
 ALTER TABLE `t_collumns`
   ADD PRIMARY KEY (`collumnId`);
+
+--
+-- Indeks untuk tabel `t_dailyinspection`
+--
+ALTER TABLE `t_dailyinspection`
+  ADD PRIMARY KEY (`insId`);
 
 --
 -- Indeks untuk tabel `t_pointcheck`
@@ -355,13 +378,13 @@ ALTER TABLE `resulttype`
 -- AUTO_INCREMENT untuk tabel `tooldata`
 --
 ALTER TABLE `tooldata`
-  MODIFY `dataId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=46;
+  MODIFY `dataId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- AUTO_INCREMENT untuk tabel `t_checkmethod`
 --
 ALTER TABLE `t_checkmethod`
-  MODIFY `methodId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=49;
+  MODIFY `methodId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT untuk tabel `t_collumns`
@@ -370,10 +393,16 @@ ALTER TABLE `t_collumns`
   MODIFY `collumnId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
+-- AUTO_INCREMENT untuk tabel `t_dailyinspection`
+--
+ALTER TABLE `t_dailyinspection`
+  MODIFY `insId` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT untuk tabel `t_pointcheck`
 --
 ALTER TABLE `t_pointcheck`
-  MODIFY `checkId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=58;
+  MODIFY `checkId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT untuk tabel `t_rank`

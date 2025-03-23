@@ -161,10 +161,31 @@ module.exports = {
     },
 
     deleteTool: async (req, res) => {
-        const db = new crud
-        await db.where('toolId', '=', req.body.toolId).delete('t_tools')
+        try {
+            const db = new crud();
+            await db.where('toolId', '=', req.body.toolId).delete('t_tools');
 
-        return res.status(200).json({ message: 'success' })
+            // Path file yang akan dihapus
+            const filePath = path.join(__dirname, '../dist/uploads/checkimage/', `${req.body.toolId}.png`);
+
+            // Periksa apakah file ada sebelum dihapus
+            if (fs.existsSync(filePath)) {
+                fs.unlink(filePath, (err) => {
+                    if (err) {
+                        console.error("Gagal menghapus file:", err);
+                        return res.status(500).json({ message: 'Gagal menghapus file' });
+                    }
+                    console.log("File berhasil dihapus:", filePath);
+                });
+            } else {
+                console.log("File tidak ditemukan:", filePath);
+            }
+
+            return res.status(200).json({ message: 'Success' });
+        } catch (error) {
+            console.error("Error saat menghapus:", error);
+            return res.status(500).json({ message: 'Terjadi kesalahan' });
+        }
     },
     getData: async (req, res) => {
         try {
