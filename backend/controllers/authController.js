@@ -187,5 +187,12 @@ module.exports = {
         const roles = await db.where('roleId', '=', decrypted.roleId).get('t_roles')
         const home = roles[0].dashboardPage
         return res.status(200).json(home)
+    },
+    getMydata: async (req, res) => {
+        const { sessionId } = req.body
+        const decrypted = crypter.decryptObject(sessionId)
+        const { userName, userId } = decrypted
+
+        return res.status(200).json({ userName, userId })
     }
 }

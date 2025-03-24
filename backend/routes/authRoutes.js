@@ -13,5 +13,6 @@ router.post('/edituser', controller.editUser)
 router.post('/deleteUser', controller.deleteUser)
 router.post('/changepass', controller.changePass)
 router.post('/gethome', controller.getHome)
+router.post('/getmydata', controller.getMydata)
 
 module.exports = router

@@ -1,6 +1,6 @@
 <template>
-  <div class="d-flex align-center fill-height justify-center" ref="stepper">
-    <div :style="`transform: scale(${scale})`">
+  <div class="d-flex align-center fill-height justify-center" ref="container">
+    <div class="pa-2" ref="stepper">
       <v-stepper v-model="step">
         <v-stepper-header fixed>
           <template v-for="(param, index) in parameters" :key="index">
@@ -13,7 +13,7 @@
 
         <v-card class="ma-3">
           <v-card-text>
-            <v-img height="300" :src="dataUrl"></v-img>
+            <v-img :style="`height: ${scale}px;`" :src="dataUrl"></v-img>
           </v-card-text>
         </v-card>
         <v-stepper-window>
@@ -26,7 +26,7 @@
                 >
                   <v-list-item-title>
                     <v-card>
-                      <template v-slot:prepend>
+                      <template v-slot:prepend v-if="param.pointNumber != 0">
                         <div
                           class="text-center"
                           style="
@@ -47,7 +47,9 @@
                         </span>
                       </template>
                       <template v-slot:title>
-                        {{ method.methodString }}
+                        <div class="text-wrap">
+                          {{ method.methodString }}
+                        </div>
                       </template>
                       <template v-slot:append>
                         <v-avatar
@@ -60,7 +62,7 @@
                         </v-avatar>
                       </template>
                       <v-card-text>
-                        <div class="w-100">
+                        <v-card class="w-100">
                           <v-btn-toggle
                             divided=""
                             density="compact"
@@ -79,24 +81,24 @@
                               >NG
                             </v-btn>
                           </v-btn-toggle>
-                        </div>
+                        </v-card>
                         <!-- <v-select
-                          @update:model-value="
-                            setValue($event, method.methodId)
-                          "
-                          :items="optOKNG"
-                          variant="outlined"
-                          rounded="pill"
-                          v-model="method.value"
-                          v-if="method.resultType == 1"
-                          :error="!method.value && showError"
-                          :error-messages="
-                            !method.value && showError
-                              ? 'Please input inspection result!'
-                              : ''
-                          "
-                        >
-                        </v-select> -->
+                        @update:model-value="
+                          setValue($event, method.methodId)
+                        "
+                        :items="optOKNG"
+                        variant="outlined"
+                        rounded="pill"
+                        v-model="method.value"
+                        v-if="method.resultType == 1"
+                        :error="!method.value && showError"
+                        :error-messages="
+                          !method.value && showError
+                            ? 'Please input inspection result!'
+                            : ''
+                        "
+                      >
+                      </v-select> -->
                         <v-text-field
                           @keyup="setValue($event, method.methodId)"
                           :error="!method.value && showError"
@@ -164,7 +166,15 @@
           </template>
 
           <template v-slot:prev>
-            <v-btn @click="step--" color="success" prepend-icon="mdi-arrow-left"
+            <v-btn
+              @click="
+                () => {
+                  step--;
+                  scaleView();
+                }
+              "
+              color="success"
+              prepend-icon="mdi-arrow-left"
               >Back</v-btn
             >
           </template>
@@ -181,13 +191,19 @@ import $ from "jquery";
 
 const stepper = ref(null);
 const scale = ref(1);
-const props = defineProps(["tool", "closeDialog"]);
+const props = defineProps([
+  "tool",
+  "closeDialog",
+  "containerHeight",
+  "inspectionDate",
+]);
 const store = useAppStore();
 const step = ref(1);
 const parameters = ref([]);
 const result = ref([]);
 const showError = ref(false); // Untuk menampilkan error jika data kosong
 const notGodArr = ref([]);
+const container = ref(null);
 
 // Fungsi validasi step saat ini
 const isStepValid = () => {
@@ -198,26 +214,31 @@ const isStepValid = () => {
 
 const dataUrl = ref(props.tool.file);
 
+const scaleView = () => {
+  nextTick().then(() => {
+    setTimeout(() => {
+      console.log();
+      const stepperHeight = $(stepper.value).outerHeight(true);
+      const screenHeight = $(container.value).outerHeight(true); // Ambil tinggi layar
+      console.log(stepperHeight, screenHeight);
+      if (stepperHeight > screenHeight) {
+        const stepperEl = stepper.value;
+        scale.value = 300 * 0.8; // Sesuaikan skala berdasarkan tinggi
+        console.log(stepperHeight, screenHeight);
+        stepperEl.scrollIntoView({ behavior: "smooth", block: "center" });
+      } else {
+        scale.value = 300 * 1; // Jika cukup, gunakan ukuran normal
+        console.log(stepperHeight, screenHeight);
+      }
+    }, 200);
+  });
+};
+
 const next = () => {
   if (isStepValid()) {
     showError.value = false;
     step.value++;
-    nextTick().then(() => {
-      setTimeout(() => {
-        const stepperHeight = $(stepper.value).outerHeight(true);
-        const screenHeight = window.innerHeight; // Ambil tinggi layar
-
-        console.log("After update:", stepperHeight, screenHeight);
-
-        if (stepperHeight > screenHeight) {
-          const stepperEl = stepper.value;
-          scale.value = 0.8; // Sesuaikan skala berdasarkan tinggi
-          stepperEl.scrollIntoView({ behavior: "smooth", block: "center" });
-        } else {
-          scale.value = 1; // Jika cukup, gunakan ukuran normal
-        }
-      }, 200);
-    });
+    scaleView();
   } else {
     showError.value = true;
   }
@@ -257,43 +278,57 @@ const setValue = (e, methodId) => {
   const standard = JSON.parse(result.value[index].standard);
 
   const r = store.validateMeasurement(standard.name, e, standard.arg);
+  console.log(r);
 
   if (!r) {
-    notGodArr.value.push(result.value[index]);
+    const exists = notGodArr.value.some(
+      (f) => f.methodId === result.value[index].methodId
+    );
+    if (!exists) {
+      notGodArr.value.push(result.value[index]);
+    }
+  } else {
+    const itemIndex = notGodArr.value.findIndex(
+      (f) => f.methodId === result.value[index].methodId
+    );
+    if (itemIndex !== -1) {
+      notGodArr.value.splice(itemIndex, 1);
+    }
   }
 
+  console.log(notGodArr.value);
+
   result.value[index].result = r ? "OK" : "NG";
-  console.log(result.value[index]);
 };
 
 const finish = async () => {
-  const NG = notGodArr.value.length > 0;
-  if (NG) {
-    result.value.result = "NG";
-  } else {
-    result.value.result = "OK";
-  }
+  store
+    .ajax({ sessionId: store.sessionId }, "auth/getmydata", "post")
+    .then((e) => {
+      const NG = notGodArr.value.length > 0;
+      console.log(notGodArr.value);
+      const inspectionData = {
+        checkDate: props.inspectionDate,
+        judgement: NG ? "NG" : "OK",
+        checker: e.userId,
+        toolId: props.tool.toolId,
+        instData: result.value,
+      };
 
-  console.log(result.value);
+      console.log(inspectionData.instData.length);
+      store
+        .ajax(inspectionData, "tool/dailychecksubmit", "post")
+        .catch((error) => {
+          store.alert.fire(error);
+        })
+        .then(() => {
+          props.closeDialog();
+        });
+    });
 };
 
 onMounted(() => {
   getCheckParameters();
-  nextTick().then(() => {
-    setTimeout(() => {
-      const stepperHeight = $(stepper.value).outerHeight(true);
-      const screenHeight = window.innerHeight; // Ambil tinggi layar
-
-      console.log("After update:", stepperHeight, screenHeight);
-
-      if (stepperHeight > screenHeight) {
-        const stepperEl = stepper.value;
-        scale.value = 0.8; // Sesuaikan skala berdasarkan tinggi
-        stepperEl.scrollIntoView({ behavior: "smooth", block: "center" });
-      } else {
-        scale.value = 1; // Jika cukup, gunakan ukuran normal
-      }
-    }, 200);
-  });
+  scaleView();
 });
 </script>

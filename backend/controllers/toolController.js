@@ -2,6 +2,7 @@ const crud = require('../helpers/crud')
 const crypter = require('../helpers/crypter')
 const path = require("path"); // Untuk membangun path file secara aman
 const fs = require('fs');
+const moment = require('moment');
 
 module.exports = {
     getTools: async (req, res) => {
@@ -34,6 +35,33 @@ module.exports = {
                         const fileBuffer = fs.readFileSync(filePath);
                         fileBase64 = `data:image/png;base64,${fileBuffer.toString("base64")}`;
                     }
+
+                    if (req.body.date) {
+                        const date = req.body.date
+                        let instData = await dbInstance.where('toolId', '=', tool.toolId).where('checkDate', '=', date).get('t_dailyinspection')
+
+                        tool.instData = await Promise.all(instData.map((e) => {
+                            const dec = crypter.decodeAndDecompress(e.instData)
+                            e.instData = JSON.parse(dec)
+                            return e
+                        }))
+                    }
+
+                    if (req.body.week) {
+                        const week = req.body.week
+                        const startDate = moment(week).startOf("isoWeek").format("YYYY-MM-DD");
+                        const endDate = moment(week).endOf("isoWeek").format("YYYY-MM-DD");
+
+
+                        let instData = await dbInstance.whereBetween("checkDate", startDate, endDate).where('toolId', '=', tool.toolId).get('t_dailyinspection')
+
+                        tool.instData = await Promise.all(instData.map((e) => {
+                            const dec = crypter.decodeAndDecompress(e.instData)
+                            e.instData = JSON.parse(dec)
+                            return e
+                        }))
+                    }
+
 
                     return {
                         ...tool,
@@ -276,6 +304,46 @@ module.exports = {
                 pointChecks, checker: { userId, userName }
             })
         } catch (error) {
+            console.log(error)
+            return res.status(400).json(error)
+        }
+    },
+    dailychecksubmit: async (req, res) => {
+        try {
+            const db = new crud
+            const {
+                checkDate,
+                judgement,
+                checker,
+                toolId,
+                instData,
+            } = req.body
+            const dupe = await db
+                .where('checkDate', '=', checkDate)
+                .where('toolId', '=', toolId)
+                .get('t_dailyinspection')
+
+            if (dupe.length > 0) {
+                throw {
+                    title: "Already Checked",
+                    text: "The tool is already checked for today!",
+                    icon: "error",
+                    timer: 3000,
+                }
+            }
+
+            const cryptedData = crypter.compressAndEncode(JSON.stringify(instData))
+            console.log(cryptedData.length)
+            await db.insert('t_dailyinspection', {
+                checkDate,
+                judgement,
+                checker,
+                toolId,
+                instData: cryptedData,
+            })
+            return res.status(200).json({ message: 'success' })
+        } catch (error) {
+
             console.log(error)
             return res.status(400).json(error)
         }

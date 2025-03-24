@@ -16,6 +16,12 @@ class Crud {
             order: "ASC",
         };
     }
+
+    whereBetween(key, start, end) {
+        this.whereArr.push({ key, operator: "BETWEEN", value: [start, end] });
+        return this; // Agar bisa di-chain
+    }
+
     viewLastQuery() {
         return this.lastQuery;
     }
@@ -58,18 +64,33 @@ class Crud {
         this.query += joinQuery;
 
         if (this.whereArr.length > 0) {
-            whereQuery = " WHERE " + this.whereArr.map(w => `${w.key} ${w.operator} ?`).join(" AND ");
+            whereQuery = " WHERE " + this.whereArr.map(w => {
+                if (w.operator === "BETWEEN") {
+                    return `${w.key} BETWEEN ? AND ?`;
+                }
+                return `${w.key} ${w.operator} ?`;
+            }).join(" AND ");
         }
         this.query += whereQuery;
+
 
         if (this.order.field) {
             this.query += ` ORDER BY ${this.order.field} ${this.order.order}`;
         }
 
+        const values = [];
+        this.whereArr.forEach(w => {
+            if (w.operator === "BETWEEN") {
+                values.push(w.value[0], w.value[1]); // Pastikan dua nilai masuk
+            } else {
+                values.push(w.value);
+            }
+        });
+
         this.lastQuery = this.query
 
         try {
-            const [rows] = await database.promise().query(this.query, this.whereArr.map(w => w.value));
+            const [rows] = await database.promise().query(this.query, values);
             this.clear(); // Reset state setelah operasi selesai
             return rows;
         } catch (err) {

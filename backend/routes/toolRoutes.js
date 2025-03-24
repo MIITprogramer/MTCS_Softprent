@@ -11,5 +11,6 @@ router.post('/updatedata', controller.updateData)
 router.post('/getcollumn', controller.getColumn)
 router.post('/dailycheckinit', controller.dailyCheckInit)
 router.post('/getimage', controller.reqImage)
+router.post('/dailychecksubmit', controller.dailychecksubmit)
 
 module.exports = router
