@@ -3,7 +3,7 @@
     <div class="d-flex w-100 fill-height">
       <div
         ref="scroller"
-        :style="`width:1111px!important;height:750px!important;
+        :style="`width:1500px!important;height:768px!important;
   overflow-x: auto;
   overflow-y: auto;`"
       >
@@ -19,17 +19,23 @@
             <v-col cols="9" class="pa-0 ma-0">
               <div
                 class="text-capitalize"
-                :style="`font-size:${28}pt!important;margin-bottom:${10}pt`"
+                :style="`font-size:${
+                  fontSize * 2
+                }pt!important;margin-bottom:${fontSize}pt`"
               >
                 Inspection Tool Control List
                 {{ selectedRank.rankName }}
                 <br />
                 {{ selectedRank.rankNameJp }}計測器管理台帳
               </div>
-              <div :style="`font-size:${16}pt!important;margin-bottom:${10}pt`">
+              <div
+                :style="`font-size:${
+                  fontSize * 1.3
+                }pt!important;margin-bottom:${fontSize}pt`"
+              >
                 {{ selectedRank.description }}
               </div>
-              <div class="" :style="`font-size:${14}pt!important`">
+              <div class="" :style="`font-size:${fontSize * 1.2}pt!important`">
                 Date of Issue : {{ issuedD.format("DD/MMM/YYYY") }}
               </div>
             </v-col>
@@ -42,9 +48,9 @@
             <table
               ref="myTable"
               class="itc_table text-no-wrap"
-              :style="`transform-origin: top left; transform: scale(${fontScale})`"
+              :style="{ fontSize: fontSize + 'px' }"
             >
-              <thead :style="`font-size:${10}pt!important`">
+              <thead>
                 <tr>
                   <th>No</th>
                   <th class="borderLeft">Equipment Name <br />機器名称</th>
@@ -53,7 +59,7 @@
                     機種固有Ｎo.
                   </th>
                   <th
-                    class="borderLeft"
+                    class="borderLeft text-wrap"
                     v-for="(item, index) in collumns"
                     :key="index"
                     v-show="selectedCol.includes(item.collumnId)"
@@ -67,7 +73,7 @@
                   </th>
                 </tr>
               </thead>
-              <tbody :style="`font-size:${10}pt!important`">
+              <tbody :style="{ fontSize: fontSize + 1 + 'px' }">
                 <tr
                   class="borderLeft"
                   v-for="(item, index) in selectedTools"
@@ -121,7 +127,7 @@
                 class="w-90"
                 v-model="scale"
                 step="0.01"
-                :max="2"
+                :max="1"
                 min="0.65"
                 hide-details=""
               >
@@ -141,25 +147,26 @@
                 </template>
               </v-slider>
 
-              <v-slider
-                class="w-90"
-                v-model="fontScale"
-                step="0.001"
-                min="0"
-                max="2"
+              <v-text-field
+                hide-spin-buttons=""
+                type="number"
+                variant="outlined"
+                class="mt-3"
+                v-model="fontSize"
+                label="Font Size"
                 hide-details=""
               >
-                <template v-slot:prepend>
+                <template v-slot:prepend-inner>
                   <v-icon>mdi-format-size</v-icon>
                 </template>
-              </v-slider>
+              </v-text-field>
               <div class="d-flex justify-center w-100">
                 <v-btn-group density="compact" class="my-5">
                   <v-btn
                     color="transparent"
                     @click="
                       () => {
-                        fontScale = fontScale - 0.001;
+                        fontSize = Number(fontSize) - 0.5;
                       }
                     "
                   >
@@ -169,7 +176,7 @@
                     color="transparent"
                     @click="
                       () => {
-                        fontScale = 0.819;
+                        fontSize = 8;
                       }
                     "
                   >
@@ -178,7 +185,7 @@
                   <v-btn
                     @click="
                       () => {
-                        fontScale = fontScale + 0.001;
+                        fontSize = Number(fontSize) + 0.5;
                       }
                     "
                     color="transparent"
@@ -235,14 +242,22 @@
 import { useAppStore } from "@/store/app";
 import jsPDF from "jspdf";
 import moment from "moment";
-import { nextTick, onBeforeMount, onMounted, reactive, ref, watch } from "vue";
+import {
+  computed,
+  nextTick,
+  onBeforeMount,
+  onMounted,
+  reactive,
+  ref,
+  watch,
+} from "vue";
 import html2canvas from "html2canvas";
 import $ from "jquery";
 
 const issuedD = ref(moment(new Date()));
 const myTable = ref(null);
-const fontScale = ref(0.819);
-const paper = ref("a3");
+const fontSize = ref(8);
+const paper = ref("a4");
 const issued = ref(issuedD.value.format("YYYY-MM-DD"));
 const scale = ref(0.5);
 const scroller = ref(null);
@@ -255,7 +270,7 @@ const selectedRank = ref({});
 const selectedTools = ref([]);
 const selectedCol = ref([]);
 const printA = ref(null);
-const row = ref(32);
+const row = ref(22);
 const selectedFont = ref("MS PGothic");
 const fonts = ref([
   "Arial",
@@ -267,10 +282,11 @@ const fonts = ref([
   "Comic Sans MS",
   "MS PGothic",
 ]);
+const factor = row.value / fontSize.value; // Faktor skala dari percobaanmu
 
 const papers = reactive({
-  a3: { w: 420, h: 297, s: 0.82, sc: 0.65 }, // Perbaiki ukuran A3
-  a4: { w: 297, h: 210, s: 0.57, sc: 0.99 }, // Perbaiki ukuran A4
+  a3: { w: 420, h: 297, s: 1, sc: 1 }, // Perbaiki ukuran A3
+  a4: { w: 297, h: 210, s: 1, sc: 1 }, // Perbaiki ukuran A4
 });
 const getValue = (item, itm) => {
   const data = item.data.find((e) => e.columId == itm.collumnId);
@@ -292,26 +308,6 @@ const refreshData = async () => {
 
 watch(issued, (e) => {
   issuedD.value = moment(e);
-});
-watch(scale, (e) => {
-  if (e < 0.825) {
-    fitToPage();
-  }
-});
-
-watch(fontScale, () => {
-  const tab = myTable.value;
-  const trr = $(tab).find("tbody tr")[0];
-  const trH = trr.getBoundingClientRect().height; //
-  const trF = 515 / trH;
-  console.log(trF);
-
-  const { height } = tab.getBoundingClientRect();
-
-  const pers = trF.toFixed(0) * (515 / height).toFixed(0);
-  row.value = pers.toFixed(0);
-  const l = row.value - selectedTools.value.length;
-  empty.value = Array(l).fill("");
 });
 
 const setRank = (rank) => {
@@ -346,15 +342,16 @@ const fitToPage = async () => {
     container.scrollTop = (container.scrollHeight - container.clientHeight) / 2;
   }
 };
-const maxScale = () => {
-  scale.value = 1;
 
-  const container = scroller.value;
-  if (container) {
-    container.scrollLeft = 0;
-    container.scrollTop = 0;
-  }
-};
+const rowCount = computed(() => {
+  return Math.floor(row.value / (fontSize.value / 8)); // Hitung row berdasarkan skala font
+});
+
+watch(fontSize, (newSize) => {
+  const l = rowCount.value - selectedTools.value.length;
+  empty.value = Array(l).fill("");
+  console.log(`Font Size: ${newSize}px, Rows: ${rowCount.value}`);
+});
 
 watch(printA, (e) => {
   console.log(e);
@@ -374,7 +371,7 @@ watch(paper, async () => {
 const print = async () => {
   store.preload = true;
   await nextTick();
-  maxScale();
+  scale.value = 2;
   await nextTick();
   html2canvas(printA.value, {
     scale: 3,
@@ -410,6 +407,8 @@ const print = async () => {
 
 <style scoped>
 .a3 {
+  -webkit-user-drag: element;
+  user-select: none;
   background: white;
   border: 1px solid #ccc; /* Opsional */
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Opsional */
@@ -421,20 +420,20 @@ const print = async () => {
 }
 
 .itc_table th {
-  border: 1px solid black; /* Pastikan border seragam */
+  border: 0.5pt solid black !important; /* Pastikan border seragam */
   padding: 5px;
 }
 
 .itc_table td {
-  border: 1px solid black; /* Pastikan border seragam */
+  border: 0.5pt solid black !important; /* Pastikan border seragam */
   padding: 5px;
 }
 
 .borderLeft {
-  border-left: 1px solid black !important; /* Pastikan border kiri tidak terputus */
+  border-left: 0.5pt solid black !important; /* Pastikan border kiri tidak terputus */
 }
 
 td.borderLeft {
-  border-left: 1px solid black !important; /* Pastikan border kiri tidak terputus */
+  border-left: 0.5pt solid black !important; /* Pastikan border kiri tidak terputus */
 }
 </style>

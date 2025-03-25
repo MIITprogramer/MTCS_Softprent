@@ -1,7 +1,7 @@
 <template>
   <div class="w-100 pa-2 d-flex justify-center align-center h-100">
     <v-card
-      class="w-100"
+      class="w-100 h-100"
       title="WEEKLY CONTROL"
       subtitle="Weekly Inspection Tool Control"
     >

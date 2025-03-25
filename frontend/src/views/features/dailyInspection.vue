@@ -1,6 +1,10 @@
 <template>
-  <div class="w-100 pa-2">
-    <v-card title="DAILY CONTROL" subtitle="Daily Inspection Tool Control">
+  <div class="w-100 pa-2 d-flex justify-center align-center h-100">
+    <v-card
+      class="w-100 h-100"
+      title="DAILY CONTROL"
+      subtitle="Daily Inspection Tool Control"
+    >
       <template v-slot:append>
         <v-text-field
           append-inner-icon="mdi-calendar"
@@ -15,7 +19,12 @@
       </template>
       <v-card-text>
         <v-divider class="mb-3"></v-divider>
-        <v-data-table :headers="headers" :items="tools" :search="search">
+        <v-data-table
+          items-per-page="25"
+          :headers="headers"
+          :items="tools"
+          :search="search"
+        >
           <template v-slot:top>
             <v-row>
               <v-col cols="8">
